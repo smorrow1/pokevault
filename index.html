@@ -11,6 +11,8 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a18;-webkit-font-smoothing:antialiased}
 .app{max-width:480px;margin:0 auto;padding-bottom:100px;min-height:100vh;background:#f4f4f2}
+
+/* Topbar */
 .topbar{background:#1D9E75;color:#E1F5EE;padding:16px 16px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-left{display:flex;align-items:center;gap:10px}
 .pokeball{width:36px;height:36px;border-radius:50%;border:2px solid #9FE1CB;display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -18,13 +20,17 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .topbar-sub{font-size:11px;color:#9FE1CB;margin-top:1px}
 .topbar-val .amount{font-size:22px;font-weight:600;text-align:right}
 .topbar-val .label{font-size:11px;color:#9FE1CB;text-align:right}
+
+/* Stats */
 .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
 .stat-card{background:#fff;border-radius:8px;padding:12px 14px;border:0.5px solid #e0e0d8}
 .stat-label{font-size:12px;color:#888;display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .stat-val{font-size:22px;font-weight:600;color:#1a1a18}
 .stat-val.green{color:#0F6E56}
+
+/* Scan */
 .scan-section{padding:14px}
-.scan-trigger{border:1.5px dashed #9FE1CB;border-radius:12px;background:#E1F5EE;padding:22px 16px;text-align:center;cursor:pointer;transition:background 0.15s;-webkit-tap-highlight-color:transparent}
+.scan-trigger{border:1.5px dashed #9FE1CB;border-radius:12px;background:#E1F5EE;padding:22px 16px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .scan-trigger:active{background:#c5edde}
 .scan-trigger .icon{font-size:36px;color:#0F6E56;margin-bottom:8px}
 .scan-trigger h2{font-size:16px;font-weight:600;color:#085041;margin-bottom:4px}
@@ -32,31 +38,60 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 #videoWrap{display:none;border-radius:12px;overflow:hidden;background:#000;margin-bottom:10px}
 #video{width:100%;display:block;max-height:55vw;object-fit:cover}
 .video-overlay{background:rgba(0,0,0,0.5);padding:12px;display:flex;gap:8px}
-.btn-capture{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;font-family:inherit}
-.btn-cancel{padding:12px 16px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.btn-capture{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-cancel{padding:12px 16px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
 #processingMsg{display:none;text-align:center;padding:28px 16px}
 #processingMsg .spin{font-size:36px;color:#1D9E75;display:block;margin-bottom:10px;animation:spin 1s linear infinite}
 #processingMsg p{font-size:14px;color:#666}
+
+/* Confirm step */
+#confirmStep{display:none}
+.confirm-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
+.confirm-wrap h3{font-size:15px;font-weight:600;margin-bottom:6px;color:#085041;display:flex;align-items:center;gap:6px}
+.confirm-wrap .hint{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
+.confirm-img-row{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+.confirm-img-row img{width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
+.confirm-wrap input{width:100%;padding:11px 14px;font-size:16px;border:0.5px solid #1D9E75;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit;font-weight:600}
+.confirm-btns{display:flex;gap:8px;margin-top:10px}
+.btn-confirm{flex:1;padding:11px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-confirm-cancel{padding:11px 14px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* Result card */
 #scanResult{display:none}
 .result-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
 .result-header{display:flex;gap:12px;margin-bottom:12px}
 .card-img{width:72px;height:100px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
 .card-img-ph{width:72px;height:100px;border-radius:6px;background:#f1f1ed;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:28px;color:#aaa;flex-shrink:0}
 .result-info{flex:1;min-width:0}
-.result-name{font-size:17px;font-weight:600;color:#1a1a18;margin-bottom:3px}
-.result-set{font-size:12px;color:#888;margin-bottom:8px}
+.result-name{font-size:17px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.result-set{font-size:12px;color:#888;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.result-release{font-size:11px;color:#aaa;margin-bottom:8px}
 .rarity-pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:#FAEEDA;color:#633806}
-.price-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:0.5px solid #eee;border-bottom:0.5px solid #eee;margin:10px 0}
-.price-label-t{font-size:12px;color:#888}
-.price-amount{font-size:20px;font-weight:700;color:#0F6E56}
-.result-btns{display:flex;gap:8px}
-.btn-add{flex:1;padding:11px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;font-family:inherit}
-.btn-discard{padding:11px 14px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit}
+
+/* Price block */
+.price-block{background:#f4f4f2;border-radius:8px;padding:10px 12px;margin:10px 0}
+.price-block-title{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.price-item{background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid #e8e8e0}
+.price-item-label{font-size:11px;color:#aaa;margin-bottom:2px}
+.price-item-val{font-size:15px;font-weight:700;color:#0F6E56}
+.price-item-val.muted{color:#888;font-weight:400;font-size:13px}
+.price-trend-up{color:#0F6E56}
+.price-trend-down{color:#A32D2D}
+.price-updated{font-size:10px;color:#bbb;margin-top:6px;text-align:right}
+
+.result-btns{display:flex;gap:8px;margin-top:12px}
+.btn-add{flex:1;padding:11px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-discard{padding:11px 14px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* Manual search */
 .manual-section{padding:0 14px 14px;display:flex;gap:8px}
 .manual-section input{flex:1;padding:11px 14px;font-size:15px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
 .manual-section input:focus{border-color:#1D9E75}
-.btn-search{padding:11px 14px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.btn-search{padding:11px 14px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .btn-search:disabled{opacity:0.5}
+
+/* Collection */
 .section-header{padding:8px 14px 6px;display:flex;justify-content:space-between;align-items:center}
 .section-title{font-size:16px;font-weight:600;color:#1a1a18}
 .section-count{font-size:12px;color:#888}
@@ -65,32 +100,34 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .filter-pill{white-space:nowrap;font-size:12px;padding:6px 13px;border-radius:999px;border:0.5px solid #ddd;background:#fff;color:#666;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;flex-shrink:0}
 .filter-pill.active{background:#E1F5EE;border-color:#9FE1CB;color:#085041;font-weight:600}
 .coll-grid{padding:0 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.coll-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:10px;position:relative}
+.coll-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:10px;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .coll-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px;background:#f1f1ed}
 .coll-thumb-ph{width:100%;aspect-ratio:3/4;background:#f1f1ed;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#ccc}
-.coll-name{font-size:13px;font-weight:600;color:#1a1a18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.coll-name{font-size:13px;font-weight:600;color:#1a1a18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.coll-release{font-size:10px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .coll-set{font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
-.coll-price{font-size:13px;font-weight:600;color:#0F6E56}
+.coll-price{font-size:14px;font-weight:700;color:#0F6E56}
+.coll-price.no-price{color:#bbb;font-weight:400;font-size:12px}
 .coll-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.9);border:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#888;-webkit-tap-highlight-color:transparent}
 .coll-del:active{background:#FCEBEB;color:#A32D2D}
 .empty-state{text-align:center;padding:40px 20px;color:#aaa;grid-column:1/-1}
 .empty-state i{font-size:48px;display:block;margin-bottom:12px}
 .empty-state p{font-size:14px}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#085041;color:#E1F5EE;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:500;pointer-events:none;opacity:0;transition:opacity 0.2s;white-space:nowrap;z-index:9999}
-#toast.show{opacity:1}
 
-/* Name-confirm overlay */
-.confirm-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
-.confirm-wrap h3{font-size:15px;font-weight:600;margin-bottom:6px;color:#085041}
-.confirm-wrap p{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
-.confirm-img-row{display:flex;gap:10px;margin-bottom:12px;align-items:center}
-.confirm-img-row img{width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
-.confirm-wrap input{width:100%;padding:11px 14px;font-size:16px;border:0.5px solid #1D9E75;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit;font-weight:600}
-.confirm-btns{display:flex;gap:8px;margin-top:10px}
-.btn-confirm{flex:1;padding:11px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-confirm-cancel{padding:11px 14px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit}
+/* Card detail modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;overflow-y:auto;padding:20px 14px}
+.modal-bg.open{display:block}
+.modal{background:#fff;border-radius:16px;padding:16px;max-width:440px;margin:0 auto;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:#f4f4f2;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.modal-img{width:120px;height:168px;object-fit:cover;border-radius:8px;border:0.5px solid #e0e0d8;float:left;margin:0 14px 10px 0}
+.modal-img-ph{width:120px;height:168px;background:#f1f1ed;border-radius:8px;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:48px;color:#ccc;float:left;margin:0 14px 10px 0}
+.modal-name{font-size:18px;font-weight:700;color:#1a1a18;margin-bottom:4px}
+.modal-meta{font-size:12px;color:#888;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.modal-release{font-size:12px;color:#aaa;margin-bottom:8px}
+.clearfix::after{content:'';display:block;clear:both}
+.modal-section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px}
 
-/* API setup */
+/* API section */
 .api-section{padding:14px}
 .api-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
 .api-card h3{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:#085041}
@@ -100,6 +137,8 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .btn-save-api{margin-top:8px;width:100%;padding:10px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .info-box{background:#E1F5EE;border-radius:8px;padding:10px 12px;font-size:12px;color:#0F6E56;line-height:1.6;margin-top:10px}
 
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#085041;color:#E1F5EE;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:500;pointer-events:none;opacity:0;transition:opacity 0.2s;white-space:nowrap;z-index:9999}
+#toast.show{opacity:1}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -133,11 +172,11 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
   <!-- API Key -->
   <div class="api-section" id="apiSection">
     <div class="api-card">
-      <h3><i class="ti ti-key" style="font-size:16px"></i> Anthropic API-Key</h3>
-      <p>Für die automatische Karten-Erkennung per Kamera wird ein API-Key benötigt. Kostenlos unter <strong>console.anthropic.com</strong> → API Keys → Create Key. Wird nur lokal gespeichert.</p>
+      <h3><i class="ti ti-key" style="font-size:16px"></i> Anthropic API-Key (optional)</h3>
+      <p>Für automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong> → API Keys. Wird nur lokal auf diesem Gerät gespeichert.</p>
       <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
-      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check"></i> Key speichern & loslegen</button>
-      <div class="info-box">Ohne Key: Manuelle Suche unten funktioniert sofort ohne Key!</div>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check"></i> Speichern & loslegen</button>
+      <div class="info-box"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> Ohne Key: Manuelle Suche funktioniert sofort und vollständig!</div>
     </div>
   </div>
 
@@ -148,25 +187,20 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
       <h2>Karte scannen</h2>
       <p>Kamera öffnen → fotografieren → Name bestätigen</p>
     </div>
-
     <div id="videoWrap">
       <video id="video" autoplay playsinline muted></video>
       <div class="video-overlay">
         <button class="btn-capture" onclick="captureFrame()"><i class="ti ti-camera"></i> Jetzt scannen</button>
-        <button class="btn-cancel" onclick="cancelScan()">✕</button>
+        <button class="btn-cancel" onclick="cancelScan()">✕ Abbrechen</button>
       </div>
     </div>
     <canvas id="snap" style="display:none"></canvas>
-
     <div id="processingMsg">
       <i class="ti ti-loader-2 spin"></i>
       <p>Karte wird erkannt…</p>
     </div>
-
-    <!-- Name confirm step -->
-    <div id="confirmStep" style="display:none"></div>
-
-    <div id="scanResult" style="display:none"></div>
+    <div id="confirmStep"></div>
+    <div id="scanResult"></div>
   </div>
 
   <!-- Manual Search -->
@@ -190,41 +224,43 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
   <div class="coll-grid" id="collGrid"></div>
 </div>
 
+<!-- Card Detail Modal -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
 <div id="toast"></div>
 
 <script>
-let mediaStream = null;
-let collection = JSON.parse(localStorage.getItem('pokevault_v3') || '[]');
-let activeFilter = 'all';
-let pendingCard = null;
-let capturedB64 = null;
+let mediaStream=null;
+let collection=JSON.parse(localStorage.getItem('pokevault_v4')||'[]');
+let activeFilter='all';
+let pendingCard=null;
+let capturedB64=null;
 
-function getKey(){ return localStorage.getItem('pokevault_apikey')||''; }
+function getKey(){return localStorage.getItem('pokevault_apikey')||'';}
 
 function saveApiKey(){
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if(!k){ showToast('Bitte Key eingeben'); return; }
-  localStorage.setItem('pokevault_apikey', k);
-  document.getElementById('apiSection').style.display = 'none';
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){showToast('Bitte Key eingeben');return;}
+  localStorage.setItem('pokevault_apikey',k);
+  document.getElementById('apiSection').style.display='none';
   showToast('Key gespeichert — los geht\'s!');
 }
 
-function save(){ localStorage.setItem('pokevault_v3', JSON.stringify(collection)); }
+function save(){localStorage.setItem('pokevault_v4',JSON.stringify(collection));}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
-}
-
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtPrice(v){return v!=null&&v!==''?'€'+parseFloat(v).toFixed(2):null;}
+function fmtDate(s){if(!s)return '';try{return new Date(s).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return '';}}
 
 function updateStats(){
   const total=collection.reduce((s,c)=>s+(c.price||0),0);
   document.getElementById('totalVal').textContent='€'+total.toFixed(2);
   document.getElementById('cardCount').textContent=collection.length;
   document.getElementById('collCount').textContent=collection.length+' Karten';
-  if(collection.length===0){ document.getElementById('topVal').textContent='—'; return; }
+  if(!collection.length){document.getElementById('topVal').textContent='—';return;}
   const top=[...collection].sort((a,b)=>(b.price||0)-(a.price||0))[0];
   document.getElementById('topVal').textContent='€'+(top.price||0).toFixed(2);
 }
@@ -236,7 +272,7 @@ function renderCollection(){
   if(activeFilter==='holo') cards=cards.filter(c=>(c.rarity||'').toLowerCase().includes('holo'));
   if(activeFilter==='common') cards=cards.filter(c=>['common','uncommon'].includes((c.rarity||'').toLowerCase()));
   if(activeFilter==='valuable') cards=cards.filter(c=>(c.price||0)>=5);
-  if(cards.length===0){
+  if(!cards.length){
     grid.innerHTML=`<div class="empty-state"><i class="ti ti-pokeball"></i><p>${collection.length===0?'Noch keine Karten — scanne deine erste!':'Keine Karten in dieser Kategorie'}</p></div>`;
     return;
   }
@@ -244,11 +280,15 @@ function renderCollection(){
     const idx=collection.indexOf(c);
     const img=c.image?`<img class="coll-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' ;
     const ph=`<div class="coll-thumb-ph" style="${c.image?'display:none':''}"><i class="ti ti-pokeball"></i></div>`;
-    return `<div class="coll-card">${img}${ph}
+    const priceHtml=c.price?`<div class="coll-price">${fmtPrice(c.price)}</div>`:`<div class="coll-price no-price">Kein Preis</div>`;
+    const release=c.releaseDate?`<div class="coll-release"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</div>`:'';
+    return `<div class="coll-card" onclick="openModal(${idx})">
+      ${img}${ph}
       <div class="coll-name">${esc(c.name)}</div>
       <div class="coll-set">${esc(c.set||'—')}</div>
-      <div class="coll-price">${c.price?'€'+c.price.toFixed(2):'—'}</div>
-      <button class="coll-del" onclick="removeCard(${idx})" aria-label="Entfernen"><i class="ti ti-x"></i></button>
+      ${release}
+      ${priceHtml}
+      <button class="coll-del" onclick="event.stopPropagation();removeCard(${idx})" aria-label="Entfernen"><i class="ti ti-x"></i></button>
     </div>`;
   }).join('');
 }
@@ -260,18 +300,76 @@ function setFilter(f,btn){
   renderCollection();
 }
 
-function removeCard(idx){ collection.splice(idx,1); save(); updateStats(); renderCollection(); showToast('Karte entfernt'); }
+function removeCard(idx){collection.splice(idx,1);save();updateStats();renderCollection();showToast('Karte entfernt');}
+
+// ── MODAL ───────────────────────────────────────────────
+function openModal(idx){
+  const c=collection[idx];
+  if(!c) return;
+  const img=c.image?`<img class="modal-img" src="${esc(c.image)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+  const ph=`<div class="modal-img-ph" style="${c.image?'display:none':''}"><i class="ti ti-pokeball"></i></div>`;
+
+  // Price block
+  let priceBlock='<p style="font-size:13px;color:#aaa">Kein Preisdaten verfügbar</p>';
+  if(c.pricing){
+    const cm=c.pricing.cardmarket;
+    const tcp=c.pricing.tcgplayer;
+    let rows='';
+    if(cm){
+      const trend=cm.trend!=null?parseFloat(cm.trend):null;
+      const avg7=cm.avg7!=null?parseFloat(cm.avg7):null;
+      const avg30=cm.avg30!=null?parseFloat(cm.avg30):null;
+      const avg=cm.avg!=null?parseFloat(cm.avg):null;
+      rows+=`<div class="price-item"><div class="price-item-label">Cardmarket Trend</div><div class="price-item-val">${trend!=null?'€'+trend.toFixed(2):'—'}</div></div>`;
+      rows+=`<div class="price-item"><div class="price-item-label">Ø 7 Tage</div><div class="price-item-val">${avg7!=null?'€'+avg7.toFixed(2):'—'}</div></div>`;
+      rows+=`<div class="price-item"><div class="price-item-label">Ø 30 Tage</div><div class="price-item-val">${avg30!=null?'€'+avg30.toFixed(2):'—'}</div></div>`;
+      rows+=`<div class="price-item"><div class="price-item-label">Aktueller Ø</div><div class="price-item-val">${avg!=null?'€'+avg.toFixed(2):'—'}</div></div>`;
+      const updated=cm.updated?`<div class="price-updated">Aktualisiert: ${fmtDate(cm.updated)}</div>`:'';
+      priceBlock=`<div class="price-block"><div class="price-block-title"><i class="ti ti-chart-line" style="font-size:12px"></i> Cardmarket (EUR)</div><div class="price-grid">${rows}</div>${updated}</div>`;
+    }
+    if(tcp&&tcp.normal){
+      const n=tcp.normal;
+      let tcpRows=`<div class="price-item"><div class="price-item-label">TCGplayer Market</div><div class="price-item-val">${n.marketPrice!=null?'$'+parseFloat(n.marketPrice).toFixed(2):'—'}</div></div>`;
+      tcpRows+=`<div class="price-item"><div class="price-item-label">Low</div><div class="price-item-val">${n.lowPrice!=null?'$'+parseFloat(n.lowPrice).toFixed(2):'—'}</div></div>`;
+      priceBlock+=`<div class="price-block" style="margin-top:8px"><div class="price-block-title"><i class="ti ti-chart-bar" style="font-size:12px"></i> TCGplayer (USD)</div><div class="price-grid">${tcpRows}</div></div>`;
+    }
+  }
+
+  const relInfo=c.releaseDate?`<div class="modal-release"><i class="ti ti-calendar" style="font-size:12px;vertical-align:-1px"></i> Erschienen: ${esc(c.releaseDate)}</div>`:'';
+  const rarityBadge=c.rarity?`<span class="rarity-pill" style="margin-top:4px;display:inline-block">${esc(c.rarity)}</span>`:'';
+
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModalDirect()"><i class="ti ti-x"></i></button>
+    <div class="clearfix">
+      ${img}${ph}
+      <div class="modal-name">${esc(c.name)}</div>
+      <div class="modal-meta"><i class="ti ti-cards" style="font-size:12px"></i> ${esc(c.set||'—')}</div>
+      ${relInfo}
+      ${rarityBadge}
+    </div>
+    <div class="modal-section-title">Preise</div>
+    ${priceBlock}
+    <button class="btn-discard" style="width:100%;margin-top:14px;padding:12px;text-align:center;border-radius:8px" onclick="closeModalDirect()">Schließen</button>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(e){if(e.target===document.getElementById('modalBg'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalBg').classList.remove('open');document.body.style.overflow='';}
 
 // ── CAMERA ──────────────────────────────────────────────
 async function startScan(){
   document.getElementById('scanTrigger').style.display='none';
   document.getElementById('scanResult').style.display='none';
+  document.getElementById('scanResult').innerHTML='';
   document.getElementById('confirmStep').style.display='none';
+  document.getElementById('confirmStep').innerHTML='';
   document.getElementById('videoWrap').style.display='block';
-  try {
+  try{
     mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:960}}});
     document.getElementById('video').srcObject=mediaStream;
-  } catch(e){
+  }catch(e){
     document.getElementById('videoWrap').style.display='none';
     document.getElementById('scanTrigger').style.display='block';
     showToast('Kamera nicht verfügbar');
@@ -283,12 +381,12 @@ function cancelScan(){
   document.getElementById('videoWrap').style.display='none';
   document.getElementById('scanTrigger').style.display='block';
   document.getElementById('confirmStep').style.display='none';
+  document.getElementById('confirmStep').innerHTML='';
   document.getElementById('scanResult').style.display='none';
+  document.getElementById('scanResult').innerHTML='';
 }
 
-function stopCam(){
-  if(mediaStream){ mediaStream.getTracks().forEach(t=>t.stop()); mediaStream=null; }
-}
+function stopCam(){if(mediaStream){mediaStream.getTracks().forEach(t=>t.stop());mediaStream=null;}}
 
 async function captureFrame(){
   const video=document.getElementById('video');
@@ -299,135 +397,164 @@ async function captureFrame(){
   capturedB64=canvas.toDataURL('image/jpeg',0.85).split(',')[1];
   stopCam();
   document.getElementById('videoWrap').style.display='none';
-
   if(getKey()){
-    // Try Claude Vision
     document.getElementById('processingMsg').style.display='block';
-    try {
+    try{
       const name=await recognizeWithClaude(capturedB64);
       document.getElementById('processingMsg').style.display='none';
-      showConfirmStep(name, capturedB64);
-    } catch(e){
+      showConfirmStep(name,capturedB64);
+    }catch(e){
       document.getElementById('processingMsg').style.display='none';
-      // Fallback: ask user to type name
-      showConfirmStep('', capturedB64);
+      showConfirmStep('',capturedB64);
     }
-  } else {
-    // No API key: show image + ask for name
-    showConfirmStep('', capturedB64);
+  }else{
+    showConfirmStep('',capturedB64);
   }
 }
 
 async function recognizeWithClaude(b64){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':getKey(),
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:200,
-      messages:[{
-        role:'user',
-        content:[
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'What is the name of the Pokémon on this trading card? Reply with ONLY the Pokémon name in German (e.g. "Mewtu", "Pikachu", "Glurak"). No other text.'}
-        ]
-      }]
-    })
+    headers:{'Content-Type':'application/json','x-api-key':getKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:100,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+      {type:'text',text:'What is the name of the Pokémon on this trading card? Reply with ONLY the Pokémon name (in German if it is a German card, e.g. "Mewtu", "Pikachu", "Glurak"). No other text, no punctuation.'}
+    ]}]})
   });
   if(!res.ok) throw new Error('API '+res.status);
   const data=await res.json();
-  const name=(data.content||[]).map(b=>b.text||'').join('').trim().replace(/["""\.]/g,'');
+  const name=(data.content||[]).map(b=>b.text||'').join('').trim().replace(/["""\.!,]/g,'');
   if(!name) throw new Error('empty');
   return name;
 }
 
-function showConfirmStep(detectedName, b64){
-  const previewSrc = b64 ? 'data:image/jpeg;base64,'+b64 : '';
-  const imgTag = previewSrc ? `<img src="${previewSrc}" style="width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0" alt="Gescannte Karte">` : '';
-  const hint = detectedName
-    ? `<p>Claude hat <strong>${esc(detectedName)}</strong> erkannt. Stimmt der Name? Ändern wenn nötig:</p>`
-    : `<p>Gib den Namen der Karte ein — er steht oben auf der Karte:</p>`;
-
+function showConfirmStep(detectedName,b64){
+  const previewSrc=b64?'data:image/jpeg;base64,'+b64:'';
+  const imgTag=previewSrc?`<img src="${previewSrc}" style="width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0" alt="Scan">`:'';
+  const hint=detectedName
+    ?`<p class="hint">Claude hat <strong>${esc(detectedName)}</strong> erkannt. Stimmt das? Ändern wenn nötig:</p>`
+    :`<p class="hint">Gib den Namen der Karte ein — er steht oben auf der Karte:</p>`;
   document.getElementById('confirmStep').innerHTML=`<div class="confirm-wrap">
-    <h3><i class="ti ti-cards" style="font-size:16px"></i> Welche Karte ist das?</h3>
+    <h3><i class="ti ti-cards" style="font-size:15px"></i> Welche Karte ist das?</h3>
     ${hint}
     <div class="confirm-img-row">
       ${imgTag}
-      <input type="text" id="confirmedName" value="${esc(detectedName)}" placeholder="z.B. Mewtu, Pikachu…" autofocus/>
+      <input type="text" id="confirmedName" value="${esc(detectedName)}" placeholder="z.B. Mewtu, Pikachu…"/>
     </div>
     <div class="confirm-btns">
-      <button class="btn-confirm" onclick="searchConfirmedName()"><i class="ti ti-search"></i> Suchen & hinzufügen</button>
+      <button class="btn-confirm" onclick="searchConfirmedName()"><i class="ti ti-search"></i> Suchen</button>
       <button class="btn-confirm-cancel" onclick="cancelScan()">Abbrechen</button>
     </div>
   </div>`;
   document.getElementById('confirmStep').style.display='block';
-  setTimeout(()=>{ const inp=document.getElementById('confirmedName'); if(inp) inp.focus(); },100);
+  setTimeout(()=>{const inp=document.getElementById('confirmedName');if(inp)inp.focus();},100);
 }
 
 async function searchConfirmedName(){
   const name=document.getElementById('confirmedName').value.trim();
-  if(!name){ showToast('Bitte Namen eingeben'); return; }
+  if(!name){showToast('Bitte Namen eingeben');return;}
   document.getElementById('confirmStep').style.display='none';
+  document.getElementById('confirmStep').innerHTML='';
   document.getElementById('processingMsg').style.display='block';
-  try {
+  try{
     const data=await fetchTCG(name,'');
     document.getElementById('processingMsg').style.display='none';
-    showResult({name, set:data.set||'', rarity:data.rarity||'', price:data.price||null, image:data.image||null, hp:'', type:''});
-  } catch(e){
+    showResult({name,...data});
+  }catch(e){
     document.getElementById('processingMsg').style.display='none';
     document.getElementById('scanTrigger').style.display='block';
     showToast('Karte nicht gefunden — anderen Namen versuchen');
   }
 }
 
-// ── TCGdex ──────────────────────────────────────────────
-async function fetchTCG(name, setHint){
-  const res=await fetch(`https://api.tcgdex.net/v2/de/cards?name=${encodeURIComponent(name)}`);
+// ── TCGdex API ───────────────────────────────────────────
+async function fetchTCG(name,setHint){
+  // Try German first, then English
   let cards=[];
-  if(res.ok) cards=await res.json();
-  if(!Array.isArray(cards)||cards.length===0){
-    // Try English
-    const res2=await fetch(`https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(name)}`);
-    if(res2.ok) cards=await res2.json();
+  for(const lang of['de','en']){
+    const r=await fetch(`https://api.tcgdex.net/v2/${lang}/cards?name=${encodeURIComponent(name)}`);
+    if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length){cards=d;break;}}
   }
-  if(!Array.isArray(cards)||cards.length===0) return {};
+  if(!cards.length) throw new Error('not found');
+
   let card=cards[0];
-  if(setHint){ const m=cards.find(c=>c.set&&c.set.name&&c.set.name.toLowerCase().includes(setHint.toLowerCase())); if(m) card=m; }
+  if(setHint){const m=cards.find(c=>c.set&&c.set.name&&c.set.name.toLowerCase().includes(setHint.toLowerCase()));if(m)card=m;}
+
+  // Get full card details (always in EN for pricing data)
   const dr=await fetch(`https://api.tcgdex.net/v2/en/cards/${card.id}`);
-  if(!dr.ok) return {};
+  if(!dr.ok) throw new Error('detail failed');
   const d=await dr.json();
+
+  // Extract pricing — TCGdex v2 uses d.pricing.cardmarket and d.pricing.tcgplayer
+  const pricing=d.pricing||null;
+  const cm=pricing?.cardmarket;
+  const tcp=pricing?.tcgplayer;
+
+  // Best single price for summary: cardmarket trend > avg > tcgplayer market
+  let price=null;
+  if(cm){
+    price=cm.trend??cm.avg??cm.avg7??null;
+  }
+  if(price==null&&tcp){
+    price=tcp.normal?.marketPrice??tcp.holo?.marketPrice??null;
+  }
+
+  // Release date from set
+  const releaseDate=d.set?.releaseDate||null;
+  const setName=d.set?.name||card.set?.name||setHint||'';
+  const serieName=d.set?.serie?.name||'';
+
   return {
-    image:d.image?d.image+'/high.webp':null,
-    set:d.set?.name||card.set?.name||setHint||'',
-    rarity:d.rarity||'',
-    price:d.variants?.normal||d.variants?.holo||d.variants?.reverse||null,
-    cardId:card.id
+    name: d.localName||d.name||name,
+    set: setName,
+    serie: serieName,
+    releaseDate: releaseDate||'',
+    rarity: d.rarity||'',
+    image: d.image?d.image+'/high.webp':null,
+    price: price!=null?parseFloat(price):null,
+    pricing: pricing,
+    cardId: card.id
   };
 }
 
-// ── Result card ─────────────────────────────────────────
+// ── Result card ──────────────────────────────────────────
+function buildPriceBlock(pricing){
+  if(!pricing) return '<p style="font-size:13px;color:#aaa;margin:8px 0">Kein Preis auf Cardmarket/TCGplayer gefunden</p>';
+  const cm=pricing.cardmarket;
+  if(!cm) return '<p style="font-size:13px;color:#aaa;margin:8px 0">Kein EUR-Preis verfügbar</p>';
+  const trend=cm.trend!=null?'€'+parseFloat(cm.trend).toFixed(2):'—';
+  const avg7=cm.avg7!=null?'€'+parseFloat(cm.avg7).toFixed(2):'—';
+  return `<div class="price-block">
+    <div class="price-block-title"><i class="ti ti-chart-line" style="font-size:12px"></i> Cardmarket (EUR)</div>
+    <div class="price-grid">
+      <div class="price-item"><div class="price-item-label">Trend</div><div class="price-item-val">${trend}</div></div>
+      <div class="price-item"><div class="price-item-label">Ø 7 Tage</div><div class="price-item-val">${avg7}</div></div>
+    </div>
+  </div>`;
+}
+
 function showResult(card){
   pendingCard=card;
   const img=card.image?`<img class="card-img" src="${esc(card.image)}" alt="${esc(card.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' ;
   const ph=`<div class="card-img-ph" style="${card.image?'display:none':''}"><i class="ti ti-pokeball"></i></div>`;
-  const price=card.price!=null?`<span class="price-amount">€${parseFloat(card.price).toFixed(2)}</span>`:`<span class="price-amount" style="color:#aaa">—</span>`;
+  const priceDisplay=card.price!=null?`<span style="font-size:20px;font-weight:700;color:#0F6E56">€${parseFloat(card.price).toFixed(2)}</span>`:`<span style="font-size:14px;color:#aaa">Kein Preis verfügbar</span>`;
+  const setLine=card.serie?`${esc(card.serie)} › ${esc(card.set)}`:esc(card.set||'—');
+  const release=card.releaseDate?`<div class="result-release"><i class="ti ti-calendar" style="font-size:11px;vertical-align:-1px"></i> Erschienen: ${esc(card.releaseDate)}</div>`:'';
+
   document.getElementById('scanResult').innerHTML=`<div class="result-card">
     <div class="result-header">
       ${img}${ph}
       <div class="result-info">
         <div class="result-name">${esc(card.name)}</div>
-        <div class="result-set">${esc(card.set||'—')}</div>
+        <div class="result-set"><i class="ti ti-cards" style="font-size:11px"></i> ${setLine}</div>
+        ${release}
         ${card.rarity?`<span class="rarity-pill">${esc(card.rarity)}</span>`:''}
       </div>
     </div>
-    <div class="price-row">
-      <span class="price-label-t"><i class="ti ti-currency-euro" style="vertical-align:-2px"></i> Marktwert (TCGdex)</span>
-      ${price}
+    ${buildPriceBlock(card.pricing)}
+    <div class="price-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:0.5px solid #eee;margin-top:8px">
+      <span style="font-size:12px;color:#888">Cardmarket Trend</span>
+      ${priceDisplay}
     </div>
     <div class="result-btns">
       <button class="btn-add" onclick="addCard()"><i class="ti ti-plus"></i> Zur Sammlung</button>
@@ -440,8 +567,19 @@ function showResult(card){
 
 function addCard(){
   if(!pendingCard) return;
-  collection.unshift({name:pendingCard.name,set:pendingCard.set||'',rarity:pendingCard.rarity||'',price:pendingCard.price?parseFloat(pendingCard.price):0,image:pendingCard.image||null,type:pendingCard.type||'',addedAt:Date.now()});
-  save(); updateStats(); renderCollection();
+  collection.unshift({
+    name:pendingCard.name,
+    set:pendingCard.set||'',
+    serie:pendingCard.serie||'',
+    releaseDate:pendingCard.releaseDate||'',
+    rarity:pendingCard.rarity||'',
+    price:pendingCard.price!=null?parseFloat(pendingCard.price):0,
+    image:pendingCard.image||null,
+    pricing:pendingCard.pricing||null,
+    cardId:pendingCard.cardId||'',
+    addedAt:Date.now()
+  });
+  save();updateStats();renderCollection();
   pendingCard=null;
   document.getElementById('scanResult').style.display='none';
   document.getElementById('scanResult').innerHTML='';
@@ -464,11 +602,11 @@ async function manualSearch(){
   const btn=document.getElementById('manualBtn');
   btn.disabled=true;
   btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';
-  try {
+  try{
     const data=await fetchTCG(name,'');
-    showResult({name,set:data.set||'',rarity:data.rarity||'',price:data.price||null,image:data.image||null,hp:'',type:''});
+    showResult({...data,name:data.name||name});
     input.value='';
-  } catch(e){ showToast('Karte nicht gefunden'); }
+  }catch(e){showToast('Karte nicht gefunden — anderen Namen versuchen');}
   btn.disabled=false;
   btn.innerHTML='<i class="ti ti-search"></i>';
 }
