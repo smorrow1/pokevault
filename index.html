@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D9E75">
+<title>PokéVault</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a18;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:120px;background:#f4f4f2}
+
+/* ── Topbar ── */
+.topbar{background:#1D9E75;color:#E1F5EE;padding:16px 16px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.pokeball{width:36px;height:36px;border-radius:50%;border:2px solid #9FE1CB;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:20px;font-weight:600}
+.topbar-sub{font-size:11px;color:#9FE1CB;margin-top:1px}
+.topbar-val .amount{font-size:22px;font-weight:600;text-align:right}
+.topbar-val .label{font-size:11px;color:#9FE1CB;text-align:right}
+
+/* ── Stats ── */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
+.stat-card{background:#fff;border-radius:8px;padding:12px 14px;border:0.5px solid #e0e0d8}
+.stat-label{font-size:12px;color:#888;display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600;color:#1a1a18}
+.stat-val.green{color:#0F6E56}
+
+/* ── Scan ── */
+.scan-section{padding:14px}
+.scan-trigger{border:1.5px dashed #9FE1CB;border-radius:12px;background:#E1F5EE;padding:22px 16px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s}
+.scan-trigger:active{background:#c5edde}
+.scan-trigger .icon{font-size:36px;color:#0F6E56;margin-bottom:8px}
+.scan-trigger h2{font-size:16px;font-weight:600;color:#085041;margin-bottom:4px}
+.scan-trigger p{font-size:13px;color:#0F6E56}
+#videoWrap{display:none;border-radius:12px;overflow:hidden;background:#000;margin-bottom:10px}
+#video{width:100%;display:block;max-height:60vw;object-fit:cover}
+.video-overlay{background:rgba(0,0,0,0.5);padding:12px;display:flex;gap:8px}
+.btn-capture{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-capture:disabled{opacity:0.6;cursor:not-allowed}
+.btn-cancel{padding:12px 16px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ── Processing ── */
+#processingMsg{display:none;text-align:center;padding:28px 16px}
+.spin{font-size:36px;color:#1D9E75;display:block;margin-bottom:10px;animation:spin 1s linear infinite}
+#processingMsg p{font-size:14px;color:#666;margin:0}
+#processingMsg .sub{font-size:12px;color:#aaa;margin-top:4px}
+
+/* ── Confirm ── */
+#confirmStep{display:none}
+.confirm-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
+.confirm-wrap h3{font-size:15px;font-weight:600;margin-bottom:6px;color:#085041;display:flex;align-items:center;gap:6px}
+.confirm-hint{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
+.confirm-detected{background:#E1F5EE;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.confirm-detected strong{display:block;font-size:15px;margin-bottom:2px;color:#085041}
+.confirm-detected .sub{font-size:12px;color:#0F6E56}
+.confirm-img-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.confirm-img-row img{width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
+.confirm-fields{flex:1;display:flex;flex-direction:column;gap:8px}
+.field-label{font-size:11px;color:#888;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.03em}
+.confirm-wrap input{width:100%;padding:9px 12px;font-size:15px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
+.confirm-wrap input:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+.confirm-btns{display:flex;gap:8px;margin-top:12px}
+.btn-confirm{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-confirm:disabled{opacity:0.6;cursor:not-allowed}
+.btn-secondary{padding:12px 14px;background:#fff;color:#666;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ── Card Picker ── */
+#cardPicker{display:none}
+.picker-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
+.picker-wrap h3{font-size:15px;font-weight:600;color:#085041;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.picker-sub{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
+/* No max-height here — let it be part of the natural page scroll */
+.picker-grid{display:flex;flex-direction:column;gap:8px}
+.picker-item{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;border:0.5px solid #e0e0d8;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;transition:background 0.1s}
+.picker-item:active,.picker-item.selected{border-color:#1D9E75;background:#E1F5EE}
+.picker-thumb{width:44px;height:62px;border-radius:5px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0;background:#f1f1ed}
+.picker-thumb-ph{width:44px;height:62px;border-radius:5px;background:#f1f1ed;display:flex;align-items:center;justify-content:center;font-size:18px;color:#ccc;flex-shrink:0}
+.picker-info{flex:1;min-width:0}
+.picker-name{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.picker-set{font-size:12px;color:#888;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picker-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.picker-num{font-size:11px;color:#aaa;background:#f4f4f2;padding:2px 6px;border-radius:4px}
+.picker-rarity{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#FAEEDA;color:#633806}
+.picker-price{font-size:13px;font-weight:700;color:#0F6E56;margin-left:auto;flex-shrink:0;padding-left:8px}
+.picker-no-price{font-size:11px;color:#bbb;margin-left:auto;flex-shrink:0}
+
+/* ── Duplicate warning ── */
+.dup-warn{background:#FFF4E0;border:0.5px solid #F0B429;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#7A4800;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.dup-warn i{flex-shrink:0;margin-top:1px;color:#D97706}
+
+/* ── Result card ── */
+#scanResult{display:none}
+.result-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
+.result-header{display:flex;gap:12px;margin-bottom:12px}
+.card-img{width:80px;height:112px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
+.card-img-ph{width:80px;height:112px;border-radius:6px;background:#f1f1ed;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:28px;color:#aaa;flex-shrink:0}
+.result-info{flex:1;min-width:0}
+.result-name{font-size:17px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.result-num{font-size:12px;color:#aaa;font-weight:400}
+.result-set{font-size:12px;color:#888;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.result-release{font-size:11px;color:#aaa;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.rarity-pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:#FAEEDA;color:#633806}
+.price-block{background:#f4f4f2;border-radius:8px;padding:10px 12px;margin:10px 0}
+.price-block-title{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.price-item{background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid #e8e8e0}
+.price-item-label{font-size:11px;color:#aaa;margin-bottom:2px}
+.price-item-val{font-size:15px;font-weight:700;color:#0F6E56}
+.price-item-val.muted{color:#bbb;font-size:13px;font-weight:400}
+.price-updated{font-size:10px;color:#bbb;margin-top:6px;text-align:right}
+.price-summary{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:0.5px solid #eee;margin-top:4px}
+.price-summary-val{font-size:20px;font-weight:700;color:#0F6E56}
+.price-summary-na{font-size:14px;color:#aaa}
+.result-btns{display:flex;gap:8px;margin-top:12px}
+.btn-add{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-wrong{padding:12px 14px;background:#fff;color:#555;border:0.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:4px;white-space:nowrap}
+
+/* ── Manual search ── */
+.manual-section{padding:0 14px 14px;display:flex;gap:8px}
+.manual-input{flex:1;padding:12px 14px;font-size:15px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
+.manual-input:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+.btn-search{padding:12px 14px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-width:48px;display:flex;align-items:center;justify-content:center}
+.btn-search:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ── Collection ── */
+.section-header{padding:8px 14px 6px;display:flex;justify-content:space-between;align-items:center}
+.section-title{font-size:16px;font-weight:600}
+.section-count{font-size:12px;color:#888}
+.filter-row{padding:0 14px 10px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-pill{white-space:nowrap;font-size:12px;padding:7px 14px;border-radius:999px;border:0.5px solid #ddd;background:#fff;color:#666;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:all 0.12s}
+.filter-pill.active{background:#E1F5EE;border-color:#9FE1CB;color:#085041;font-weight:600}
+.coll-grid{padding:0 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.coll-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:10px;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.coll-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px;background:#f1f1ed}
+.coll-thumb-ph{width:100%;aspect-ratio:3/4;background:#f1f1ed;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#ccc}
+.coll-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.coll-set{font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.coll-release{font-size:10px;color:#aaa;margin-bottom:5px}
+.coll-price{font-size:14px;font-weight:700;color:#0F6E56}
+.coll-price.no-price{color:#bbb;font-weight:400;font-size:12px}
+.coll-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.95);border:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#888;-webkit-tap-highlight-color:transparent;z-index:1}
+.coll-del:active{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+.empty-state{text-align:center;padding:48px 20px;color:#aaa;grid-column:1/-1}
+.empty-state i{font-size:48px;display:block;margin-bottom:12px;opacity:0.5}
+.empty-state p{font-size:14px;line-height:1.6}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 14px 40px}
+.modal-bg.open{display:block}
+.modal{background:#fff;border-radius:16px;padding:16px;max-width:440px;margin:0 auto;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:#f4f4f2;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:#555;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.modal-img-wrap{display:flex;gap:14px;margin-bottom:12px}
+.modal-img{width:110px;height:154px;object-fit:cover;border-radius:8px;border:0.5px solid #e0e0d8;flex-shrink:0}
+.modal-img-ph{width:110px;height:154px;background:#f1f1ed;border-radius:8px;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc;flex-shrink:0}
+.modal-card-info{flex:1;min-width:0;padding-top:4px}
+.modal-name{font-size:18px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.modal-meta{font-size:12px;color:#888;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.modal-release{font-size:12px;color:#aaa;margin-bottom:8px}
+.modal-section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px}
+.modal-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.btn-change-edition{padding:11px;background:#f4f4f2;color:#444;border:0.5px solid #ddd;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;width:100%}
+.btn-close-modal{padding:11px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;width:100%;text-align:center}
+
+/* ── Undo toast ── */
+#undoBar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;pointer-events:auto;opacity:0;transition:opacity 0.2s;white-space:nowrap;z-index:9999;display:flex;align-items:center;gap:12px;max-width:90vw}
+#undoBar.show{opacity:1}
+#undoBar button{background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+
+/* ── API setup ── */
+.api-section{padding:14px}
+.api-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
+.api-card h3{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:#085041}
+.api-card p{font-size:12px;color:#666;margin-bottom:10px;line-height:1.6}
+.api-card input{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid #ddd;border-radius:8px;background:#f9f9f7;color:#1a1a18;outline:none;font-family:monospace;-webkit-appearance:none}
+.api-card input:focus{border-color:#1D9E75}
+.btn-save-api{margin-top:8px;width:100%;padding:11px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.info-box{background:#E1F5EE;border-radius:8px;padding:10px 12px;font-size:12px;color:#0F6E56;line-height:1.6;margin-top:10px;display:flex;align-items:flex-start;gap:6px}
+.error-msg{background:#FCEBEB;border-radius:8px;padding:10px 12px;font-size:13px;color:#7A1515;margin-bottom:10px;display:flex;align-items:flex-start;gap:6px;line-height:1.5}
+.error-msg i{flex-shrink:0;margin-top:1px}
+
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <div class="pokeball" aria-hidden="true"><i class="ti ti-pokeball"></i></div>
+      <div>
+        <div class="topbar-title">PokéVault</div>
+        <div class="topbar-sub">Deine Karten-Sammlung</div>
+      </div>
+    </div>
+    <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
+      <div class="amount" id="totalVal">€0.00</div>
+      <div class="label">Gesamtwert</div>
+    </div>
+  </header>
+
+  <section class="stats-row" aria-label="Sammlungsstatistiken">
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> Karten</div>
+      <div class="stat-val" id="cardCount" aria-live="polite">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-star" aria-hidden="true"></i> Wertvollste</div>
+      <div class="stat-val green" id="topVal">—</div>
+    </div>
+  </section>
+
+  <!-- API Key setup — only shown when no key stored -->
+  <section class="api-section" id="apiSection" aria-label="API-Key Einrichtung">
+    <div class="api-card">
+      <h2 style="font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:#085041">
+        <i class="ti ti-key" style="font-size:16px" aria-hidden="true"></i> Anthropic API-Key <span style="font-weight:400;color:#aaa;font-size:12px">(optional)</span>
+      </h2>
+      <p>Für automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong> → API Keys. Wird nur lokal auf diesem Gerät gespeichert.</p>
+      <label for="apiKeyInput" class="field-label" style="display:block;margin-bottom:4px">API-Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false"/>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern & loslegen</button>
+      <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i> Ohne Key: Manuelle Suche funktioniert sofort und vollständig!</div>
+    </div>
+  </section>
+
+  <!-- Scan -->
+  <section class="scan-section" aria-label="Karte scannen oder suchen">
+    <div class="scan-trigger" id="scanTrigger" onclick="startScan()" role="button" tabindex="0" aria-label="Kamera öffnen um eine Karte zu scannen" onkeydown="if(event.key==='Enter'||event.key===' ')startScan()">
+      <div class="icon" aria-hidden="true"><i class="ti ti-camera"></i></div>
+      <h2 style="font-size:16px;font-weight:600;color:#085041;margin-bottom:4px">Karte scannen</h2>
+      <p>Kamera öffnen → fotografieren → Edition wählen</p>
+    </div>
+
+    <div id="videoWrap" aria-label="Kamera-Vorschau">
+      <video id="video" autoplay playsinline muted aria-label="Kamera-Stream"></video>
+      <div class="video-overlay">
+        <button class="btn-capture" id="captureBtn" onclick="captureFrame()" aria-label="Karte jetzt scannen">
+          <i class="ti ti-camera" aria-hidden="true"></i> Jetzt scannen
+        </button>
+        <button class="btn-cancel" onclick="cancelScan()" aria-label="Scan abbrechen">✕ Abbrechen</button>
+      </div>
+    </div>
+    <canvas id="snap" style="display:none" aria-hidden="true"></canvas>
+
+    <div id="processingMsg" role="status" aria-live="polite">
+      <i class="spin ti ti-loader-2" aria-hidden="true"></i>
+      <p id="processingText">Bitte warten…</p>
+      <p class="sub" id="processingStep"></p>
+    </div>
+
+    <div id="confirmStep" aria-live="polite"></div>
+    <div id="cardPicker" aria-live="polite"></div>
+    <div id="scanResult" aria-live="polite"></div>
+  </section>
+
+  <!-- Manual search -->
+  <div class="manual-section" role="search">
+    <label for="manualInput" style="display:none">Kartenname suchen</label>
+    <input
+      type="search"
+      id="manualInput"
+      class="manual-input"
+      placeholder="Kartenname suchen, z.B. Mewtu…"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')manualSearch()"
+      aria-label="Pokémon-Kartenname eingeben"
+    />
+    <button class="btn-search" id="manualBtn" onclick="manualSearch()" aria-label="Suchen">
+      <i class="ti ti-search" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Collection -->
+  <section aria-label="Meine Sammlung">
+    <div class="section-header">
+      <h2 class="section-title">Meine Sammlung</h2>
+      <span class="section-count" id="collCount" aria-live="polite">0 Karten</span>
+    </div>
+    <div class="filter-row" role="group" aria-label="Sammlung filtern">
+      <button class="filter-pill active" onclick="setFilter('all',this)" aria-pressed="true">Alle</button>
+      <button class="filter-pill" onclick="setFilter('rare',this)" aria-pressed="false">Rare</button>
+      <button class="filter-pill" onclick="setFilter('holo',this)" aria-pressed="false">Holo</button>
+      <button class="filter-pill" onclick="setFilter('common',this)" aria-pressed="false">Common</button>
+      <button class="filter-pill" onclick="setFilter('valuable',this)" aria-pressed="false">Über €5</button>
+    </div>
+    <div class="coll-grid" id="collGrid" role="list"></div>
+  </section>
+
+</div>
+
+<!-- Card detail modal -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)" role="dialog" aria-modal="true" aria-labelledby="modalCardName">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Undo bar -->
+<div id="undoBar" role="alert" aria-live="assertive">
+  <span id="undoMsg">Karte entfernt</span>
+  <button onclick="undoDelete()" aria-label="Löschen rückgängig machen">Rückgängig</button>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let mediaStream = null;
+let collection = loadCollection();
+let activeFilter = 'all';
+let pendingCard = null;           // Card about to be added
+let currentPickerCards = [];      // All editions for current search
+let currentPickerName = '';
+let editingCollId = null;         // stable card ID being re-editioned (null = new card)
+let scanInProgress = false;       // debounce flag
+let deletedCard = null;           // for undo
+let deletedIndex = -1;
+let undoTimer = null;
+
+// ═══════════════════════════════════════════════════════
+// PERSISTENCE  — stable UUIDs instead of array indices
+// ═══════════════════════════════════════════════════════
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function loadCollection() {
+  try {
+    const raw = localStorage.getItem('pokevault_v6');
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function save() {
+  try { localStorage.setItem('pokevault_v6', JSON.stringify(collection)); }
+  catch (e) { showError('Speichern fehlgeschlagen — Speicher voll?'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════════════
+function getKey() { return localStorage.getItem('pokevault_apikey') || ''; }
+
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) { showError('Bitte API-Key eingeben.'); return; }
+  localStorage.setItem('pokevault_apikey', k);
+  document.getElementById('apiSection').style.display = 'none';
+  showToast('API-Key gespeichert!');
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtPrice(v) {
+  if (v == null) return null;
+  return '€' + parseFloat(v).toFixed(2);
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  try { return new Date(s).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'}); }
+  catch (e) { return String(s); }
+}
+
+// Fetch with timeout
+async function fetchWithTimeout(url, opts = {}, ms = 8000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { ...opts, signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Safe JSON.parse
+function safeJson(str) {
+  try {
+    const cleaned = str.replace(/```json\n?|```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST / ERROR / UNDO
+// ═══════════════════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg) {
+  // Use undoBar for regular toasts that have no undo
+  // Use a lightweight inline toast for confirmations
+  const bar = document.getElementById('undoBar');
+  document.getElementById('undoMsg').textContent = msg;
+  // Hide undo button for non-delete toasts
+  bar.querySelector('button').style.display = 'none';
+  bar.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => bar.classList.remove('show'), 2600);
+}
+
+function showDeleteToast(msg) {
+  const bar = document.getElementById('undoBar');
+  document.getElementById('undoMsg').textContent = msg;
+  bar.querySelector('button').style.display = '';
+  bar.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    bar.classList.remove('show');
+    deletedCard = null; deletedIndex = -1; // commit delete after timeout
+  }, 4000);
+}
+
+function showError(msg) {
+  // Inline error in scan section
+  const el = document.getElementById('scanResult');
+  el.innerHTML = `<div class="error-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>${esc(msg)}</span></div>
+    <button class="btn-secondary" style="width:100%;margin-top:8px" onclick="resetScanUI()">Zurück</button>`;
+  el.style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// STATS & COLLECTION RENDER
+// ═══════════════════════════════════════════════════════
+function updateStats() {
+  const total = collection.reduce((s, c) => s + (c.price || 0), 0);
+  document.getElementById('totalVal').textContent = '€' + total.toFixed(2);
+  document.getElementById('cardCount').textContent = collection.length;
+  document.getElementById('collCount').textContent = collection.length + ' Karten';
+  if (!collection.length) { document.getElementById('topVal').textContent = '—'; return; }
+  const top = [...collection].sort((a, b) => (b.price || 0) - (a.price || 0))[0];
+  document.getElementById('topVal').textContent = '€' + (top.price || 0).toFixed(2);
+}
+
+function filteredCards() {
+  switch (activeFilter) {
+    case 'rare':     return collection.filter(c => (c.rarity||'').toLowerCase().includes('rare') && !(c.rarity||'').toLowerCase().includes('holo'));
+    case 'holo':     return collection.filter(c => (c.rarity||'').toLowerCase().includes('holo'));
+    case 'common':   return collection.filter(c => ['common','uncommon'].includes((c.rarity||'').toLowerCase()));
+    case 'valuable': return collection.filter(c => (c.price||0) >= 5);
+    default:         return [...collection];
+  }
+}
+
+function renderCollection() {
+  const grid = document.getElementById('collGrid');
+  const cards = filteredCards();
+
+  if (!cards.length) {
+    const emptyMsg = collection.length === 0
+      ? '<i class="ti ti-pokeball" aria-hidden="true"></i><p>Noch keine Karten in der Sammlung.<br>Scanne deine erste Karte!</p>'
+      : '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten in dieser Kategorie.</p>';
+    grid.innerHTML = `<div class="empty-state" role="listitem">${emptyMsg}</div>`;
+    return;
+  }
+
+  // Use stable card.uid to reference cards — never raw array index
+  grid.innerHTML = cards.map(c => {
+    const img = c.image
+      ? `<img class="coll-thumb" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+    const priceHtml = c.price
+      ? `<div class="coll-price">${fmtPrice(c.price)}</div>`
+      : `<div class="coll-price no-price">Kein Preis</div>`;
+    const rel = c.releaseDate
+      ? `<div class="coll-release"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px" aria-hidden="true"></i> ${esc(c.releaseDate)}</div>`
+      : '';
+    return `<article class="coll-card" onclick="openModal('${esc(c.uid)}')" role="listitem" aria-label="${esc(c.name)}, ${esc(c.set||'')}">
+      ${img}${ph}
+      <div class="coll-name">${esc(c.name)}</div>
+      <div class="coll-set">${esc(c.set || '—')}</div>
+      ${rel}${priceHtml}
+      <button class="coll-del" onclick="event.stopPropagation();removeCard('${esc(c.uid)}')" aria-label="${esc(c.name)} entfernen">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </article>`;
+  }).join('');
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-pressed', 'false');
+  });
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
+  renderCollection();
+}
+
+// ═══════════════════════════════════════════════════════
+// DELETE WITH UNDO
+// ═══════════════════════════════════════════════════════
+function removeCard(uid) {
+  const idx = collection.findIndex(c => c.uid === uid);
+  if (idx === -1) return;
+  deletedCard = collection[idx];
+  deletedIndex = idx;
+  collection.splice(idx, 1);
+  save(); updateStats(); renderCollection();
+  showDeleteToast(`„${deletedCard.name}" entfernt`);
+}
+
+function undoDelete() {
+  if (!deletedCard) return;
+  if (toastTimer) clearTimeout(toastTimer);
+  collection.splice(deletedIndex, 0, deletedCard);
+  deletedCard = null; deletedIndex = -1;
+  save(); updateStats(); renderCollection();
+  document.getElementById('undoBar').classList.remove('show');
+  showToast('Wiederhergestellt!');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(uid) {
+  const c = collection.find(x => x.uid === uid);
+  if (!c) return;
+
+  const img = c.image
+    ? `<img class="modal-img" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const ph = `<div class="modal-img-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+  const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
+  const rel = c.releaseDate ? `<div class="modal-release"><i class="ti ti-calendar" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Erschienen: ${esc(c.releaseDate)}</div>` : '';
+  const num = c.cardNumber ? ` <span style="font-size:13px;color:#aaa;font-weight:400">#${esc(c.cardNumber)}</span>` : '';
+
+  let priceHtml = '<p style="font-size:13px;color:#aaa">Keine Cardmarket-Preisdaten verfügbar.</p>';
+  if (c.pricing?.cardmarket) {
+    const cm = c.pricing.cardmarket;
+    const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
+    const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+    priceHtml = `<div class="price-block">
+      <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+      <div class="price-grid">
+        ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+      </div>${upd}
+    </div>`;
+  }
+  if (c.pricing?.tcgplayer?.normal) {
+    const n = c.pricing.tcgplayer.normal;
+    const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '$' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
+    priceHtml += `<div class="price-block" style="margin-top:8px">
+      <div class="price-block-title"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:12px"></i> TCGplayer (USD)</div>
+      <div class="price-grid">${row('Market', n.marketPrice)}${row('Low', n.lowPrice)}</div>
+    </div>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Modal schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="modal-img-wrap">
+      ${img}${ph}
+      <div class="modal-card-info">
+        <div class="modal-name" id="modalCardName">${esc(c.name)}${num}</div>
+        <div class="modal-meta"><i class="ti ti-cards" aria-hidden="true" style="font-size:12px"></i> ${serieSet}</div>
+        ${rel}
+        ${c.rarity ? `<span class="rarity-pill">${esc(c.rarity)}</span>` : ''}
+      </div>
+    </div>
+    <div class="modal-section-title">Preise</div>
+    ${priceHtml}
+    <div class="modal-actions">
+      <button class="btn-change-edition" onclick="closeModalDirect();changeEdition('${esc(uid)}')">
+        <i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition? Andere wählen
+      </button>
+      <button class="btn-close-modal" onclick="closeModalDirect()">Schließen</button>
+    </div>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function changeEdition(uid) {
+  const c = collection.find(x => x.uid === uid);
+  if (!c) return;
+  editingCollId = uid;
+  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  document.getElementById('scanTrigger').style.display = 'none';
+  try {
+    const cards = await searchAllCards(c.name, '');
+    hideProcessing();
+    showCardPicker(cards, c.name);
+  } catch (e) {
+    hideProcessing();
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError('Suche fehlgeschlagen. Bitte versuche es erneut.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CAMERA + CAPTURE
+// ═══════════════════════════════════════════════════════
+async function startScan() {
+  if (scanInProgress) return;
+  editingCollId = null;
+  resetScanUI();
+  document.getElementById('videoWrap').style.display = 'block';
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+    });
+    document.getElementById('video').srcObject = mediaStream;
+  } catch (e) {
+    document.getElementById('videoWrap').style.display = 'none';
+    document.getElementById('scanTrigger').style.display = 'block';
+    const msg = e.name === 'NotAllowedError'
+      ? 'Kamerazugriff verweigert. Bitte in den Browser-Einstellungen erlauben.'
+      : 'Kamera nicht verfügbar — bitte manuell suchen.';
+    showError(msg);
+  }
+}
+
+function cancelScan() { stopCam(); resetScanUI(); }
+function stopCam() {
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+}
+
+function resetScanUI() {
+  stopCam();
+  scanInProgress = false;
+  document.getElementById('videoWrap').style.display = 'none';
+  document.getElementById('scanTrigger').style.display = 'block';
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('confirmStep').innerHTML = '';
+  document.getElementById('cardPicker').style.display = 'none';
+  document.getElementById('cardPicker').innerHTML = '';
+  document.getElementById('scanResult').style.display = 'none';
+  document.getElementById('scanResult').innerHTML = '';
+  hideProcessing();
+}
+
+function showProcessing(msg, sub) {
+  document.getElementById('processingText').textContent = msg || 'Bitte warten…';
+  document.getElementById('processingStep').textContent = sub || '';
+  document.getElementById('processingMsg').style.display = 'block';
+}
+function hideProcessing() { document.getElementById('processingMsg').style.display = 'none'; }
+
+async function captureFrame() {
+  if (scanInProgress) return;
+  scanInProgress = true;
+  const captureBtn = document.getElementById('captureBtn');
+  captureBtn.disabled = true;
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('snap');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+  stopCam();
+  document.getElementById('videoWrap').style.display = 'none';
+
+  if (getKey()) {
+    showProcessing('Karte wird erkannt…', 'Claude analysiert das Bild');
+    try {
+      const info = await recognizeWithClaude(b64);
+      hideProcessing();
+      showConfirmStep(info, b64);
+    } catch (e) {
+      hideProcessing();
+      // Specific error messages
+      const msg = e.message.startsWith('API')
+        ? `API-Fehler (${e.message}). Key korrekt? Bitte prüfen.`
+        : 'Karte nicht erkannt. Bitte Name manuell eingeben.';
+      showConfirmStep({ name: '', number: '', set: '', _error: msg }, b64);
+    }
+  } else {
+    showConfirmStep({ name: '', number: '', set: '' }, b64);
+  }
+  scanInProgress = false;
+  captureBtn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// CLAUDE VISION
+// ═══════════════════════════════════════════════════════
+async function recognizeWithClaude(b64) {
+  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+          { type: 'text', text: `You are reading a Pokémon trading card. Read ALL printed text carefully.
+
+Return ONLY valid JSON (no markdown, no extra text):
+{
+  "name": "Pokémon name exactly as printed (e.g. 'Mewtu', 'Charizard', 'Pikachu ex')",
+  "number": "card number exactly as printed at bottom corner (e.g. '025/165'), empty string if not visible",
+  "set": "set name exactly as printed at bottom of card, empty string if not visible",
+  "language": "de or en"
+}
+
+Rules:
+- name = ONLY the Pokémon species name on the card, not the attack name or trainer name
+- number is typically bottom-left or bottom-right, format like 036/165 or 136/264
+- If you cannot identify this as a Pokémon card, return {"name":"","number":"","set":"","language":"en"}
+- Return ONLY the JSON object, nothing else` }
+        ]
+      }]
+    })
+  }, 12000);
+
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const data = await res.json();
+
+  // Handle API-level errors
+  if (data.error) throw new Error(data.error.message || 'API error');
+
+  const raw = (data.content || []).map(b => b.text || '').join('');
+  const parsed = safeJson(raw);
+  if (!parsed) throw new Error('Ungültige JSON-Antwort');
+  if (!parsed.name) throw new Error('Kein Pokémon erkannt');
+  return parsed;
+}
+
+// ═══════════════════════════════════════════════════════
+// CONFIRM STEP
+// ═══════════════════════════════════════════════════════
+function showConfirmStep(info, b64) {
+  const previewSrc = b64 ? 'data:image/jpeg;base64,' + b64 : '';
+  const imgTag = previewSrc
+    ? `<img src="${previewSrc}" style="width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0" alt="Gescannte Karte">`
+    : '';
+
+  const errorHtml = info._error
+    ? `<div class="error-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>${esc(info._error)}</span></div>`
+    : '';
+
+  const detectedHtml = info.name
+    ? `<div class="confirm-detected">
+        <strong>${esc(info.name)}${info.number ? ' · Nr. ' + esc(info.number) : ''}</strong>
+        <span class="sub">${info.set ? 'Set: ' + esc(info.set) : 'Set nicht lesbar'}</span>
+      </div>`
+    : '';
+
+  const hintText = info.name
+    ? 'Claude hat folgendes erkannt — bitte prüfen und ggf. korrigieren:'
+    : 'Pokémon-Name von der Karte eingeben (steht oben auf der Karte):';
+
+  document.getElementById('confirmStep').innerHTML = `<div class="confirm-wrap">
+    <h3><i class="ti ti-cards" aria-hidden="true" style="font-size:15px"></i> Karte bestätigen</h3>
+    ${errorHtml}
+    <p class="confirm-hint">${hintText}</p>
+    ${detectedHtml}
+    <div class="confirm-img-row">
+      ${imgTag}
+      <div class="confirm-fields">
+        <div>
+          <label class="field-label" for="confName">Pokémon-Name *</label>
+          <input type="text" id="confName" value="${esc(info.name || '')}" placeholder="z.B. Mewtu" autocomplete="off" autocorrect="off"/>
+        </div>
+        <div>
+          <label class="field-label" for="confNumber">Kartennummer (optional)</label>
+          <input type="text" id="confNumber" value="${esc(info.number || '')}" placeholder="z.B. 025/165" autocomplete="off"/>
+        </div>
+      </div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn-confirm" id="confirmSearchBtn" onclick="searchFromConfirm()">
+        <i class="ti ti-search" aria-hidden="true"></i> Editionen suchen
+      </button>
+      <button class="btn-secondary" onclick="cancelScan()">Abbrechen</button>
+    </div>
+  </div>`;
+  document.getElementById('confirmStep').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+
+  // Auto-focus: if name already filled (Claude detected), focus number; otherwise focus name
+  setTimeout(() => {
+    const nameInp = document.getElementById('confName');
+    const numInp = document.getElementById('confNumber');
+    if (nameInp && !nameInp.value) nameInp.focus();
+    else if (numInp) numInp.focus();
+  }, 120);
+}
+
+async function searchFromConfirm() {
+  const name = document.getElementById('confName').value.trim();
+  const number = document.getElementById('confNumber').value.trim();
+  if (!name) {
+    document.getElementById('confName').focus();
+    document.getElementById('confName').style.borderColor = '#E24B4A';
+    setTimeout(() => { const el = document.getElementById('confName'); if (el) el.style.borderColor = ''; }, 1500);
+    return;
+  }
+  const btn = document.getElementById('confirmSearchBtn');
+  if (btn) { btn.disabled = true; }
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('confirmStep').innerHTML = '';
+  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  try {
+    const cards = await searchAllCards(name, number);
+    hideProcessing();
+    showCardPicker(cards, name);
+  } catch (e) {
+    hideProcessing();
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Editionen für „${esc(name)}" gefunden. Anderen Namen versuchen?`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TCGDEX API
+// ═══════════════════════════════════════════════════════
+async function searchAllCards(name, numberHint) {
+  let cards = [];
+
+  // Try German first, then English — sequential to avoid rate-limit spikes
+  for (const lang of ['de', 'en']) {
+    try {
+      const r = await fetchWithTimeout(
+        `https://api.tcgdex.net/v2/${lang}/cards?name=${encodeURIComponent(name)}`,
+        {}, 8000
+      );
+      if (r.ok) {
+        const d = await r.json();
+        if (Array.isArray(d) && d.length) { cards = d; break; }
+      }
+    } catch (e) { /* timeout or network error, try next lang */ }
+  }
+
+  if (!cards.length) throw new Error('not found');
+
+  // Sort: number-matched cards first
+  if (numberHint) {
+    const num = numberHint.split('/')[0].replace(/^0+/, '');
+    cards.sort((a, b) => {
+      const aM = a.localId && a.localId.replace(/^0+/, '') === num ? 0 : 1;
+      const bM = b.localId && b.localId.replace(/^0+/, '') === num ? 0 : 1;
+      return aM - bM;
+    });
+  }
+
+  // Fetch details in batches of 5 to avoid hammering TCGdex
+  const slice = cards.slice(0, 20);
+  const results = [];
+  for (let i = 0; i < slice.length; i += 5) {
+    const batch = slice.slice(i, i + 5);
+    const batchResults = await Promise.all(batch.map(c => fetchCardDetail(c, name)));
+    results.push(...batchResults.filter(Boolean));
+  }
+  return results;
+}
+
+async function fetchCardDetail(c, fallbackName) {
+  try {
+    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/cards/${c.id}`, {}, 6000);
+    if (!r.ok) return null;
+    const d = await r.json();
+    return cardFromDetail(d, fallbackName);
+  } catch (e) { return null; }
+}
+
+function cardFromDetail(d, fallbackName) {
+  const pricing = d.pricing || null;
+  const cm = pricing?.cardmarket;
+  const price = cm ? (cm.trend ?? cm.avg ?? cm.avg7 ?? null) : null;
+  return {
+    id: d.id,
+    name: d.localName || d.name || fallbackName || '',
+    set: d.set?.name || '',
+    serie: d.set?.serie?.name || '',
+    releaseDate: d.set?.releaseDate || '',
+    rarity: d.rarity || '',
+    image: d.image ? d.image + '/high.webp' : null,
+    cardNumber: d.localId || '',
+    price: price != null ? parseFloat(price) : null,
+    pricing
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// CARD PICKER
+// ═══════════════════════════════════════════════════════
+function showCardPicker(cards, name) {
+  currentPickerCards = cards;
+  currentPickerName = name;
+
+  if (!cards.length) {
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Treffer für „${esc(name)}". Anderen Namen versuchen?`);
+    return;
+  }
+
+  const itemsHtml = cards.map((c, i) => {
+    const img = c.image
+      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+    const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
+    const rarity = c.rarity ? `<span class="picker-rarity">${esc(c.rarity)}</span>` : '';
+    const num = c.cardNumber ? `<span class="picker-num">#${esc(c.cardNumber)}</span>` : '';
+    const rel = c.releaseDate ? `<span class="picker-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</span>` : '';
+    const priceEl = c.price != null
+      ? `<span class="picker-price">${fmtPrice(c.price)}</span>`
+      : `<span class="picker-no-price">kein Preis</span>`;
+    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : 'kein Preis'}">
+      ${img}${ph}
+      <div class="picker-info">
+        <div class="picker-name">${esc(c.name)}</div>
+        <div class="picker-set">${serieSet}</div>
+        <div class="picker-meta">${num}${rarity}${rel}</div>
+      </div>
+      ${priceEl}
+    </button>`;
+  }).join('');
+
+  document.getElementById('cardPicker').innerHTML = `<div class="picker-wrap">
+    <h3><i class="ti ti-list-search" aria-hidden="true" style="font-size:15px"></i> Edition wählen</h3>
+    <p class="picker-sub"><strong>${cards.length}</strong> Treffer für „${esc(name)}" — tippe auf die richtige Edition:</p>
+    <div class="picker-grid" role="list">${itemsHtml}</div>
+    <div style="margin-top:12px">
+      <button class="btn-secondary" style="width:100%;padding:11px;text-align:center" onclick="cancelScan()">Abbrechen</button>
+    </div>
+  </div>`;
+  document.getElementById('cardPicker').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+async function selectPickerCard(i) {
+  const c = currentPickerCards[i];
+  if (!c) return;
+
+  // Visual feedback
+  document.querySelectorAll('.picker-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('pi-' + i);
+  if (el) el.classList.add('selected');
+
+  if (editingCollId) {
+    // Replace edition in existing collection card
+    const idx = collection.findIndex(x => x.uid === editingCollId);
+    if (idx !== -1) {
+      const existingUid = collection[idx].uid;
+      collection[idx] = {
+        ...c,
+        uid: existingUid,           // keep stable ID
+        addedAt: collection[idx].addedAt
+      };
+      save(); updateStats(); renderCollection();
+    }
+    resetScanUI();
+    editingCollId = null;
+    showToast('Edition aktualisiert!');
+  } else {
+    // New card — show result before adding
+    document.getElementById('cardPicker').style.display = 'none';
+    document.getElementById('cardPicker').innerHTML = '';
+    showResult(c);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RESULT CARD
+// ═══════════════════════════════════════════════════════
+function buildPriceBlock(pricing) {
+  if (!pricing?.cardmarket) {
+    return '<p style="font-size:13px;color:#aaa;margin:6px 0">Kein Preis auf Cardmarket gefunden.</p>';
+  }
+  const cm = pricing.cardmarket;
+  const row = (l, v) => `<div class="price-item">
+    <div class="price-item-label">${l}</div>
+    <div class="price-item-val ${v == null ? 'muted' : ''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div>
+  </div>`;
+  const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+  return `<div class="price-block">
+    <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+    <div class="price-grid">
+      ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}
+      ${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+    </div>${upd}
+  </div>`;
+}
+
+function showResult(card) {
+  pendingCard = card;
+
+  // Duplicate check
+  const dupIdx = collection.findIndex(c => c.cardId === card.id || (c.name === card.name && c.cardNumber === card.cardNumber && c.set === card.set));
+  const dupWarn = dupIdx !== -1
+    ? `<div class="dup-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>Diese Karte ist bereits in deiner Sammlung (${esc(collection[dupIdx].name)}, ${esc(collection[dupIdx].set)}).</span></div>`
+    : '';
+
+  const img = card.image
+    ? `<img class="card-img" src="${esc(card.image)}" alt="Kartenbild von ${esc(card.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const ph = `<div class="card-img-ph" style="${card.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+  const priceDisplay = card.price != null
+    ? `<span class="price-summary-val">${fmtPrice(card.price)}</span>`
+    : `<span class="price-summary-na">Kein Preis</span>`;
+  const serieSet = card.serie ? `${esc(card.serie)} › ${esc(card.set)}` : esc(card.set || '—');
+  const rel = card.releaseDate
+    ? `<div class="result-release"><i class="ti ti-calendar" aria-hidden="true" style="font-size:11px"></i> ${esc(card.releaseDate)}</div>`
+    : '';
+  const num = card.cardNumber ? `<span class="result-num"> · #${esc(card.cardNumber)}</span>` : '';
+
+  document.getElementById('scanResult').innerHTML = `<div class="result-card">
+    ${dupWarn}
+    <div class="result-header">
+      ${img}${ph}
+      <div class="result-info">
+        <div class="result-name">${esc(card.name)}${num}</div>
+        <div class="result-set"><i class="ti ti-cards" aria-hidden="true" style="font-size:11px"></i> ${serieSet}</div>
+        ${rel}
+        ${card.rarity ? `<span class="rarity-pill">${esc(card.rarity)}</span>` : ''}
+      </div>
+    </div>
+    ${buildPriceBlock(card.pricing)}
+    <div class="price-summary">
+      <span style="font-size:12px;color:#888">Cardmarket Trend</span>
+      ${priceDisplay}
+    </div>
+    <div class="result-btns">
+      <button class="btn-add" onclick="addCard()"><i class="ti ti-plus" aria-hidden="true"></i> Zur Sammlung</button>
+      <button class="btn-wrong" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition</button>
+    </div>
+  </div>`;
+  document.getElementById('scanResult').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+function backToPicker() {
+  document.getElementById('scanResult').style.display = 'none';
+  document.getElementById('scanResult').innerHTML = '';
+  if (currentPickerCards.length) {
+    showCardPicker(currentPickerCards, currentPickerName);
+  } else {
+    resetScanUI();
+  }
+}
+
+function addCard() {
+  if (!pendingCard) return;
+  collection.unshift({
+    uid: uid(),                              // stable ID
+    name: pendingCard.name,
+    set: pendingCard.set || '',
+    serie: pendingCard.serie || '',
+    releaseDate: pendingCard.releaseDate || '',
+    rarity: pendingCard.rarity || '',
+    price: pendingCard.price != null ? parseFloat(pendingCard.price) : 0,
+    image: pendingCard.image || null,
+    pricing: pendingCard.pricing || null,
+    cardId: pendingCard.id || '',
+    cardNumber: pendingCard.cardNumber || '',
+    addedAt: Date.now()
+  });
+  save(); updateStats(); renderCollection();
+  pendingCard = null;
+  resetScanUI();
+  showToast('Karte hinzugefügt!');
+}
+
+// ═══════════════════════════════════════════════════════
+// MANUAL SEARCH
+// ═══════════════════════════════════════════════════════
+async function manualSearch() {
+  const input = document.getElementById('manualInput');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const btn = document.getElementById('manualBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true" style="animation:spin 1s linear infinite"></i>';
+  editingCollId = null;
+  document.getElementById('scanTrigger').style.display = 'none';
+  try {
+    const cards = await searchAllCards(name, '');
+    input.value = '';
+    showCardPicker(cards, name);
+  } catch (e) {
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Treffer für „${esc(name)}". Anderen Namen oder Schreibweise versuchen.`);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-search" aria-hidden="true"></i>';
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+if (getKey()) document.getElementById('apiSection').style.display = 'none';
+updateStats();
+renderCollection();
+</script>
+</body>
+</html>
