@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v11 — Wochen-Challenges (12er-Zyklus) + KP/Typ-Erfassung; Fix: Erfolge nach Backup-Import -->
+<!-- PokéVault v12 — „Spielen"-Bereich: Challenge + Set-Fortschritt + Erfolge in einem einklappbaren Block -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -328,6 +328,21 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .backup-btn:active{opacity:0.7}
 .backup-note{font-size:11px;color:#aaa;margin-top:10px}
 .backup-note.warn{color:#B45309;font-weight:500}
+/* "Spielen" hub — single collapsible group for Challenge + Sets + Achievements */
+.play-hub{margin-top:6px}
+.play-hub-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.play-hub-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px}
+.play-hub-right{display:flex;align-items:center;gap:8px;min-width:0}
+.play-hub-summary{font-size:11px;color:#888;display:none;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.play-hub-summary i{font-size:12px;color:#1D9E75}
+.play-hub-chevron{font-size:18px;color:#bbb;transition:transform 0.2s;flex-shrink:0}
+.play-hub.collapsed .play-hub-chevron{transform:rotate(-90deg)}
+.play-hub.collapsed .play-hub-summary{display:flex}
+.play-hub.collapsed .play-hub-body{display:none}
+/* Inner sections already carry their own padding; just trim the top gap under the hub header */
+.play-hub-body .challenge-section{padding-top:4px}
+.play-hub-body .set-progress-section{padding-top:14px}
+.play-hub-body .achievements-section{padding-top:14px}
 /* Weekly challenge */
 .challenge-section{padding:14px 14px 0}
 .challenge-card{background:linear-gradient(135deg,#2B6CB0,#1D9E75);border-radius:14px;padding:14px;color:#fff;box-shadow:0 4px 14px rgba(29,158,117,0.25)}
@@ -346,13 +361,9 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .challenge-foot{font-size:11px;opacity:0.85;margin-top:11px;text-align:center;border-top:1px solid rgba(255,255,255,0.2);padding-top:9px}
 /* Achievements */
 .achievements-section{padding:16px 14px 0}
-.achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.achievements-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
-.achievements-header-right{display:flex;align-items:center;gap:8px}
+.achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.achievements-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;color:#444}
 .achievements-count{font-size:13px;color:#888;font-weight:600;background:#fff;border:0.5px solid #e0e0d8;border-radius:999px;padding:3px 10px}
-.achievements-chevron{font-size:18px;color:#bbb;transition:transform 0.2s}
-.achievements-section.collapsed .achievements-chevron{transform:rotate(-90deg)}
-.achievements-section.collapsed .achievements-grid,.achievements-section.collapsed .next-achievement{display:none !important}
 .achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .ach-badge{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:10px 6px 8px;text-align:center;transition:transform 0.1s;cursor:pointer;font-family:inherit;width:100%;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center}
 .ach-badge:active{transform:scale(0.95)}
@@ -437,28 +448,40 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
     </div>
   </section>
 
-  <!-- Weekly challenge — a fresh little quest each week -->
-  <section class="challenge-section" id="weeklyChallenge" aria-label="Challenge der Woche" style="display:none"></section>
-
-  <!-- Set progress — the retention loop: "what do I still need?" -->
-  <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
-    <div class="set-progress-header">
-      <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> Set-Fortschritt</h2>
-    </div>
-    <div class="set-progress-grid"></div>
-  </section>
-
-  <!-- Achievements — collectible badges -->
-  <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
-    <div class="achievements-header" onclick="toggleAchievements()" role="button" tabindex="0" aria-label="Erfolge ein-/ausklappen" onkeydown="if(event.key==='Enter'||event.key===' ')toggleAchievements()">
-      <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
-      <div class="achievements-header-right">
-        <span class="achievements-count" id="achievementsCount">0 / 0</span>
-        <i class="ti ti-chevron-down achievements-chevron" aria-hidden="true"></i>
+  <!-- "Spielen" hub — groups Challenge + Set progress + Achievements under one
+       collapsible header so the home screen stays tidy. -->
+  <section class="play-hub" id="playHub" style="display:none">
+    <div class="play-hub-header" onclick="togglePlayHub()" role="button" tabindex="0" aria-label="Spielen-Bereich ein-/ausklappen" onkeydown="if(event.key==='Enter'||event.key===' ')togglePlayHub()">
+      <h2 class="play-hub-title"><i class="ti ti-device-gamepad-2" aria-hidden="true"></i> Spielen</h2>
+      <div class="play-hub-right">
+        <span class="play-hub-summary" id="playHubSummary" aria-hidden="true"></span>
+        <i class="ti ti-chevron-down play-hub-chevron" aria-hidden="true"></i>
       </div>
     </div>
-    <div class="next-achievement" id="nextAchievement" style="display:none"></div>
-    <div class="achievements-grid" id="achievementsGrid"></div>
+    <div class="play-hub-body" id="playHubBody">
+
+      <!-- Weekly challenge — a fresh little quest each week -->
+      <section class="challenge-section" id="weeklyChallenge" aria-label="Challenge der Woche" style="display:none"></section>
+
+      <!-- Set progress — the retention loop: "what do I still need?" -->
+      <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
+        <div class="set-progress-header">
+          <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> Set-Fortschritt</h2>
+        </div>
+        <div class="set-progress-grid"></div>
+      </section>
+
+      <!-- Achievements — collectible badges -->
+      <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
+        <div class="achievements-header">
+          <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
+          <span class="achievements-count" id="achievementsCount">0 / 0</span>
+        </div>
+        <div class="next-achievement" id="nextAchievement" style="display:none"></div>
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </section>
+
+    </div>
   </section>
 
   <!-- API Key setup — only shown when no key stored -->
@@ -675,7 +698,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v11';
+const APP_VERSION = 'v12';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1082,7 +1105,7 @@ function renderSetProgress() {
 
   const setList = Object.values(sets).sort((a, b) => b.owned.size - a.owned.size);
 
-  if (!setList.length) { wrap.style.display = 'none'; return; }
+  if (!setList.length) { wrap.style.display = 'none'; updatePlayHub(); return; }
   wrap.style.display = 'block';
 
   const cardsHtml = setList.map(s => {
@@ -1105,6 +1128,7 @@ function renderSetProgress() {
   }).join('');
 
   wrap.querySelector('.set-progress-grid').innerHTML = cardsHtml;
+  updatePlayHub();
 
   // Warm the set-detail cache in the background so tapping a set shows no spinner.
   // Deferred so it never delays the visible progress cards.
@@ -2531,7 +2555,7 @@ function renderWeeklyChallenge() {
   const wrap = document.getElementById('weeklyChallenge');
   if (!wrap) return;
   const info = currentChallengeInfo();
-  if (!info) { wrap.style.display = 'none'; return; }
+  if (!info) { wrap.style.display = 'none'; updatePlayHub(); return; }
   wrap.style.display = 'block';
 
   const ch = info.challenge;
@@ -2559,6 +2583,7 @@ function renderWeeklyChallenge() {
     </div>
     ${done ? '' : `<div class="challenge-foot">Noch ${daysLeft} Tag${daysLeft === 1 ? '' : 'e'} · neue Challenge am Montag</div>`}
   </div>`;
+  updatePlayHub();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2749,11 +2774,8 @@ function renderAchievements() {
   const unlockedCount = ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
 
   // Hide entirely until the first card is added
-  if (collection.length === 0) { wrap.style.display = 'none'; return; }
+  if (collection.length === 0) { wrap.style.display = 'none'; updatePlayHub(); return; }
   wrap.style.display = 'block';
-
-  // Restore collapsed state (folded away, header stays visible)
-  wrap.classList.toggle('collapsed', localStorage.getItem('pokevault_achievementsCollapsed') === '1');
 
   document.getElementById('achievementsCount').textContent = `${unlockedCount} / ${ACHIEVEMENTS.length}`;
 
@@ -2777,6 +2799,8 @@ function renderAchievements() {
       ${bar}
     </button>`;
   }).join('');
+
+  updatePlayHub();
 }
 
 // Show the closest-to-unlock achievement as a motivating banner
@@ -2851,12 +2875,34 @@ function openAchievementDetail(id) {
   document.body.style.overflow = 'hidden';
 }
 
-// Fold the achievements section away (state remembered)
-function toggleAchievements() {
-  const wrap = document.getElementById('achievementsSection');
-  if (!wrap) return;
-  const collapsed = wrap.classList.toggle('collapsed');
-  localStorage.setItem('pokevault_achievementsCollapsed', collapsed ? '1' : '0');
+// Fold the whole "Spielen" hub (Challenge + Sets + Achievements) away
+function togglePlayHub() {
+  const hub = document.getElementById('playHub');
+  if (!hub) return;
+  const collapsed = hub.classList.toggle('collapsed');
+  localStorage.setItem('pokevault_playHubCollapsed', collapsed ? '1' : '0');
+}
+
+// Show/hide the hub and refresh its collapsed-state summary line
+function updatePlayHub() {
+  const hub = document.getElementById('playHub');
+  if (!hub) return;
+  // Hub is visible if any inner section is currently shown
+  const anyVisible = ['weeklyChallenge', 'setProgress', 'achievementsSection']
+    .some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; });
+  hub.style.display = anyVisible ? 'block' : 'none';
+
+  const sum = document.getElementById('playHubSummary');
+  if (!sum) return;
+  const parts = [];
+  const info = currentChallengeInfo();
+  if (info) {
+    const done = !!getChallengesDone()[info.weekAbs];
+    parts.push(`<i class="ti ti-flag-2"></i> ${esc(info.challenge.title)}${done ? ' ✓' : ''}`);
+  }
+  const unlockedCount = ACHIEVEMENTS.filter(a => getUnlockedAchievements().includes(a.id)).length;
+  parts.push(`<i class="ti ti-award"></i> ${unlockedCount}/${ACHIEVEMENTS.length}`);
+  sum.innerHTML = parts.join(' · ');
 }
 
 // Lightweight confetti — no library, pure DOM
@@ -3009,6 +3055,12 @@ renderAchievements();
 // Weekly challenge: render + silently back-fill completion (no popup on load)
 renderWeeklyChallenge();
 checkChallengeProgress(false);
+// Restore the "Spielen" hub collapsed state
+if (localStorage.getItem('pokevault_playHubCollapsed') === '1') {
+  const hub = document.getElementById('playHub');
+  if (hub) hub.classList.add('collapsed');
+}
+updatePlayHub();
 setTimeout(maybeShowInstallHint, 1500);
 </script>
 </body>
