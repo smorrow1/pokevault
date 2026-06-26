@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v14 — Auto-Auslöser bei stabiler Schärfe (Dwell ~1,5s, Countdown) + Auto-Schalter -->
+<!-- PokéVault v15 — Auto-Auslöser nur bei scharfer UND ruhiger Karte (+Arming-Delay), löst nicht mehr verfrüht aus -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -710,7 +710,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v14';
+const APP_VERSION = 'v15';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1623,6 +1623,9 @@ async function startScan() {
   document.getElementById('videoWrap').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   goodSince = null;
+  prevGray = null;
+  sharpnessHistory = [];
+  scanArmedAt = Date.now();    // start the arming delay
   updateAutoToggleLabel();
   setCamStatus('starting', 'Kamera startet…');
   try {
@@ -1694,78 +1697,105 @@ function startSharpnessLoop() {
       ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, W, H);
     } catch (e) { return; }
 
-    const sharp = measureSharpness(ctx, W, H);
-    updateSharpnessUI(sharp);
+    const m = measureFrame(ctx, W, H);
+    updateSharpnessUI(m.sharp, m.motion);
   }
   sharpnessRAF = requestAnimationFrame(tick);
 }
 
 function stopSharpnessLoop() {
   if (sharpnessRAF) { cancelAnimationFrame(sharpnessRAF); sharpnessRAF = null; }
+  prevGray = null;
 }
 
-// Returns an approximate sharpness score (higher = sharper)
-function measureSharpness(ctx, W, H) {
+// Measures BOTH sharpness (focus) and motion (frame-to-frame change) in one pass.
+// sharp = variance of horizontal gradient (higher = sharper).
+// motion = mean absolute luminance change vs the previous frame (higher = more movement).
+let prevGray = null;
+function measureFrame(ctx, W, H) {
   let data;
-  try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return 0; }
-  // Convert to grayscale luminance & compute variance of differences (edge energy)
-  let sum = 0, sumSq = 0, n = 0;
-  // Step through pixels; compare each to its right neighbour (horizontal gradient)
+  try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return { sharp: 0, motion: 999 }; }
+  const n = W * H;
+  const gray = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const j = i * 4;
+    gray[i] = data[j] * 0.299 + data[j+1] * 0.587 + data[j+2] * 0.114;
+  }
+  // Sharpness: variance of horizontal gradient (edge energy)
+  let sum = 0, sumSq = 0, cnt = 0;
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W - 1; x++) {
-      const i = (y * W + x) * 4;
-      const j = (y * W + x + 1) * 4;
-      const l1 = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
-      const l2 = data[j] * 0.299 + data[j+1] * 0.587 + data[j+2] * 0.114;
-      const d = l1 - l2;
-      sum += d; sumSq += d * d; n++;
+      const d = gray[y * W + x] - gray[y * W + x + 1];
+      sum += d; sumSq += d * d; cnt++;
     }
   }
-  if (!n) return 0;
-  const mean = sum / n;
-  return sumSq / n - mean * mean; // variance of gradient = focus measure
+  const mean = cnt ? sum / cnt : 0;
+  const sharp = cnt ? (sumSq / cnt - mean * mean) : 0;
+  // Motion: mean absolute difference from the previous frame (999 on first frame)
+  let motion = 999;
+  if (prevGray && prevGray.length === n) {
+    let m = 0;
+    for (let i = 0; i < n; i++) m += Math.abs(gray[i] - prevGray[i]);
+    motion = m / n;
+  }
+  prevGray = gray;
+  return { sharp, motion };
 }
 
-// Auto-capture: fire once the image stays sharp for this long (a "dwell" timer)
-const AUTO_CAPTURE_DWELL_MS = 1500;
+// Auto-capture tuning. A card only auto-fires when it is sharp AND held still,
+// and not in the first moment after the camera opens (so there's time to position).
+const AUTO_CAPTURE_DWELL_MS = 1500;   // hold steady this long before firing
+const AUTO_ARM_DELAY_MS = 1200;       // ignore the first moment after opening
+const MOTION_STABLE_THRESHOLD = 7;    // mean luminance change below this = "still"
 let sharpnessHistory = [];
-let goodSince = null;   // timestamp when sharpness first became continuously "good"
+let goodSince = null;    // timestamp when the frame first became sharp+still
+let scanArmedAt = 0;     // when the camera opened (for the arming delay)
 
-function updateSharpnessUI(score) {
-  // Smooth over the last few readings to avoid flicker
+function updateSharpnessUI(score, motion) {
+  // Smooth sharpness over the last few readings to avoid flicker
   sharpnessHistory.push(score);
   if (sharpnessHistory.length > 5) sharpnessHistory.shift();
   const avg = sharpnessHistory.reduce((a, b) => a + b, 0) / sharpnessHistory.length;
 
   const cardback = document.getElementById('camCardback');
-  // Threshold tuned empirically: a sharp, detailed card in frame pushes variance up.
-  const isGood = avg > 90;
+  const isGood = avg > 90;                                   // detailed card in focus
+  const isStable = (motion != null) && motion < MOTION_STABLE_THRESHOLD; // not moving
+  const armed = (Date.now() - scanArmedAt) > AUTO_ARM_DELAY_MS;
 
-  if (isGood) {
-    if (cardback) cardback.classList.add('hidden');
-    // Auto-capture: require sustained sharpness, then fire via the normal path
-    if (autoCaptureEnabled && !scanInProgress) {
-      if (goodSince == null) goodSince = Date.now();
-      const remaining = AUTO_CAPTURE_DWELL_MS - (Date.now() - goodSince);
-      if (remaining <= 0) {
-        setCamStatus('good', 'Auto-Scan…');
-        captureFrame();          // identical to tapping "Scannen"
-        return;
-      }
-      setCamStatus('good', `Auto-Scan in ${Math.ceil(remaining / 1000)}…`);
-    } else {
-      setCamStatus('good', 'Scharf — bereit!');
-    }
-  } else {
-    goodSince = null;            // lost focus → restart the dwell next time
-    if (avg > 35) {
-      setCamStatus('', 'Karte ausrichten…');
-      if (cardback) cardback.classList.remove('hidden');
-    } else {
-      setCamStatus('blurry', 'Unscharf — näher/Licht');
-      if (cardback) cardback.classList.remove('hidden');
-    }
+  // Not sharp yet → still positioning
+  if (!isGood) {
+    goodSince = null;
+    if (cardback) cardback.classList.remove('hidden');
+    if (avg > 35) setCamStatus('', 'Karte ausrichten…');
+    else setCamStatus('blurry', 'Unscharf — näher/Licht');
+    return;
   }
+
+  // Sharp → a card fills the frame
+  if (cardback) cardback.classList.add('hidden');
+
+  if (!autoCaptureEnabled || scanInProgress) {
+    goodSince = null;
+    setCamStatus('good', 'Scharf — bereit!');
+    return;
+  }
+
+  // Sharp but still moving (or not armed yet) → ask the user to hold steady; no countdown
+  if (!armed || !isStable) {
+    goodSince = null;
+    setCamStatus('good', 'Ruhig halten…');
+    return;
+  }
+
+  // Sharp + still + armed → run the dwell countdown, then auto-fire
+  if (goodSince == null) goodSince = Date.now();
+  const remaining = AUTO_CAPTURE_DWELL_MS - (Date.now() - goodSince);
+  if (remaining <= 0) {
+    setCamStatus('good', 'Auto-Scan…');
+    captureFrame();            // identical to tapping "Scannen"
+    return;
+  }
+  setCamStatus('good', `Auto-Scan in ${Math.ceil(remaining / 1000)}…`);
 }
 
 // Toggle the auto-capture feature (persisted). stopPropagation so the tap
