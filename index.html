@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v10 — Erfolge: Fortschritt, Detail-Ansicht, „Nächster Erfolg", geheime Erfolge, einklappbar -->
+<!-- PokéVault v11 — Wochen-Challenges (12er-Zyklus) + KP/Typ-Erfassung; Fix: Erfolge nach Backup-Import -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -328,6 +328,22 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .backup-btn:active{opacity:0.7}
 .backup-note{font-size:11px;color:#aaa;margin-top:10px}
 .backup-note.warn{color:#B45309;font-weight:500}
+/* Weekly challenge */
+.challenge-section{padding:14px 14px 0}
+.challenge-card{background:linear-gradient(135deg,#2B6CB0,#1D9E75);border-radius:14px;padding:14px;color:#fff;box-shadow:0 4px 14px rgba(29,158,117,0.25)}
+.challenge-card.done{background:linear-gradient(135deg,#1D9E75,#0F6E56)}
+.challenge-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.challenge-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;gap:5px;opacity:0.95}
+.challenge-counter{font-size:11px;font-weight:700;background:rgba(255,255,255,0.2);padding:3px 9px;border-radius:999px}
+.challenge-body{display:flex;align-items:center;gap:13px}
+.challenge-icon{font-size:30px;width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.challenge-info{flex:1;min-width:0}
+.challenge-title{font-size:17px;font-weight:700;margin-bottom:2px}
+.challenge-desc{font-size:12.5px;line-height:1.4;opacity:0.92;margin-bottom:7px}
+.ch-status{font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px}
+.ch-status.open{background:rgba(255,255,255,0.18)}
+.ch-status.done{background:#fff;color:#0F6E56}
+.challenge-foot{font-size:11px;opacity:0.85;margin-top:11px;text-align:center;border-top:1px solid rgba(255,255,255,0.2);padding-top:9px}
 /* Achievements */
 .achievements-section{padding:16px 14px 0}
 .achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -420,6 +436,9 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
       <div class="stat-val green" id="topVal">—</div>
     </div>
   </section>
+
+  <!-- Weekly challenge — a fresh little quest each week -->
+  <section class="challenge-section" id="weeklyChallenge" aria-label="Challenge der Woche" style="display:none"></section>
 
   <!-- Set progress — the retention loop: "what do I still need?" -->
   <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
@@ -656,7 +675,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v10';
+const APP_VERSION = 'v11';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -755,6 +774,7 @@ function importCollection(event) {
       // Back-fill achievements from the imported cards and show the section again
       // (silent — checkAchievements shows no popup; it just unlocks + re-renders)
       checkAchievements(); renderAchievements();
+      renderWeeklyChallenge(); checkChallengeProgress(false);
       showToast(added ? `${added} Karten importiert!` : 'Alle Karten bereits vorhanden');
     } catch (err) {
       showToast('Backup konnte nicht gelesen werden');
@@ -2124,6 +2144,8 @@ function cardFromDetail(d, fallbackName) {
     image: d.image ? d.image + '/high.webp' : null,
     cardNumber: d.localId || '',
     price: price != null ? parseFloat(price) : null,
+    hp: d.hp != null ? parseInt(d.hp, 10) : null,   // for KP-based weekly challenges
+    types: Array.isArray(d.types) ? d.types : [],   // e.g. ["Fire"] (TCGdex EN)
     pricing
   };
 }
@@ -2419,6 +2441,127 @@ function backToPicker() {
 }
 
 // ═══════════════════════════════════════════════════════
+// WEEKLY CHALLENGE — a new little quest each week (cycles every 12)
+// ═══════════════════════════════════════════════════════
+// Each challenge's match(card) runs against a SINGLE card. A challenge counts as
+// done when a matching card is ADDED during that week's window (scan-to-complete).
+const CHALLENGES = [
+  { id: 'letterB',   icon: 'ti-letter-b', title: 'Buchstabe B',        desc: 'Finde eine Karte, deren Name mit „B" beginnt.',       match: c => /^\s*b/i.test(c.name || '') },
+  { id: 'over5',     icon: 'ti-coin',     title: 'Über €5',            desc: 'Eine Karte, die mehr als €5 wert ist.',               match: c => (c.price || 0) > 5 },
+  { id: 'fire',      icon: 'ti-flame',    title: 'Feuer-Pokémon',      desc: 'Scanne ein Pokémon vom Typ Feuer.',                   match: c => (c.types || []).includes('Fire') },
+  { id: 'holo',      icon: 'ti-sparkles', title: 'Glänzend',           desc: 'Eine glänzende Holo-Karte.',                          match: c => /holo/i.test(c.rarity || '') },
+  { id: 'hp130',     icon: 'ti-heartbeat',title: 'Mehr als 130 KP',    desc: 'Eine Karte mit mehr als 130 KP.',                     match: c => (c.hp || 0) > 130 },
+  { id: 'water',     icon: 'ti-droplet',  title: 'Wasser-Pokémon',     desc: 'Scanne ein Pokémon vom Typ Wasser.',                  match: c => (c.types || []).includes('Water') },
+  { id: 'letterP',   icon: 'ti-letter-p', title: 'Buchstabe P',        desc: 'Finde eine Karte, deren Name mit „P" beginnt.',       match: c => /^\s*p/i.test(c.name || '') },
+  { id: 'num100',    icon: 'ti-hash',     title: 'Nummer über 100',    desc: 'Eine Karte mit Kartennummer größer als 100.',         match: c => parseInt(c.cardNumber, 10) > 100 },
+  { id: 'rare',      icon: 'ti-diamond',  title: 'Seltene Karte',      desc: 'Eine Karte mit einer „Rare"-Seltenheit.',             match: c => /rare/i.test(c.rarity || '') },
+  { id: 'vintage',   icon: 'ti-history',  title: 'Oldie',              desc: 'Eine Karte aus einem Set von vor 2015.',              match: c => { const y = parseInt(String(c.releaseDate || '').slice(0, 4), 10); return y > 0 && y < 2015; } },
+  { id: 'lightning', icon: 'ti-bolt',     title: 'Elektro-Pokémon',    desc: 'Scanne ein Pokémon vom Typ Elektro.',                 match: c => (c.types || []).includes('Lightning') },
+  { id: 'over20',    icon: 'ti-diamonds', title: 'Wertvoll: über €20', desc: 'Eine besonders wertvolle Karte über €20.',            match: c => (c.price || 0) > 20 },
+];
+
+const WEEK_MS = 7 * 86400000;
+
+// Monday 00:00 of the week containing ts
+function mondayOf(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  const dow = (d.getDay() + 6) % 7;   // 0 = Monday
+  d.setDate(d.getDate() - dow);
+  return d.getTime();
+}
+// Start anchor — set once on first run (this week's Monday), then stable
+function getChallengeStart() {
+  let s = parseInt(localStorage.getItem('pokevault_challengeStart') || '0', 10);
+  if (!s) { s = mondayOf(Date.now()); localStorage.setItem('pokevault_challengeStart', String(s)); }
+  return s;
+}
+function getChallengesDone() {
+  try { return JSON.parse(localStorage.getItem('pokevault_challengesDone') || '{}'); }
+  catch (e) { return {}; }
+}
+function saveChallengesDone(map) {
+  localStorage.setItem('pokevault_challengesDone', JSON.stringify(map));
+}
+
+// Which challenge is active right now + this week's add-window
+function currentChallengeInfo() {
+  const start = getChallengeStart();
+  const weekAbs = Math.floor((Date.now() - start) / WEEK_MS);
+  if (weekAbs < 0) return null;
+  const index = ((weekAbs % CHALLENGES.length) + CHALLENGES.length) % CHALLENGES.length;
+  const windowStart = start + weekAbs * WEEK_MS;
+  return { weekAbs, index, challenge: CHALLENGES[index], windowStart, windowEnd: windowStart + WEEK_MS };
+}
+
+// Completed challenges within the current 12-week cycle (for the "X/12" counter)
+function challengesDoneThisCycle(weekAbs) {
+  const cycle = Math.floor(weekAbs / CHALLENGES.length);
+  const done = getChallengesDone();
+  let n = 0;
+  for (const k in done) { if (Math.floor(parseInt(k, 10) / CHALLENGES.length) === cycle) n++; }
+  return n;
+}
+
+function challengeMatch(ch, c) {
+  try { return !!ch.match(c); } catch (e) { return false; }
+}
+
+// Mark this week's challenge done if a card added during the window matches.
+// Returns true only when THIS call newly completes it (so addCard can celebrate).
+function checkChallengeProgress(celebrate) {
+  const info = currentChallengeInfo();
+  if (!info) return false;
+  const done = getChallengesDone();
+  if (done[info.weekAbs]) { renderWeeklyChallenge(); return false; }  // already done
+  const hit = collection.some(c =>
+    c.addedAt >= info.windowStart && c.addedAt < info.windowEnd && challengeMatch(info.challenge, c));
+  if (hit) {
+    done[info.weekAbs] = Date.now();
+    saveChallengesDone(done);
+    renderWeeklyChallenge();
+    if (celebrate) showCelebration(info.challenge.icon, 'Challenge gemeistert!', info.challenge.title, 'Super gemacht! 🎉');
+    return true;
+  }
+  renderWeeklyChallenge();
+  return false;
+}
+
+function renderWeeklyChallenge() {
+  const wrap = document.getElementById('weeklyChallenge');
+  if (!wrap) return;
+  const info = currentChallengeInfo();
+  if (!info) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const ch = info.challenge;
+  const done = !!getChallengesDone()[info.weekAbs];
+  const doneCount = challengesDoneThisCycle(info.weekAbs);
+  const total = CHALLENGES.length;
+  const daysLeft = Math.max(0, Math.ceil((info.windowEnd - Date.now()) / 86400000));
+
+  const status = done
+    ? `<div class="ch-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> Geschafft!</div>`
+    : `<div class="ch-status open"><i class="ti ti-target-arrow" aria-hidden="true"></i> Scanne eine passende Karte!</div>`;
+
+  wrap.innerHTML = `<div class="challenge-card ${done ? 'done' : ''}">
+    <div class="challenge-head">
+      <div class="challenge-eyebrow"><i class="ti ti-flag-2" aria-hidden="true"></i> Challenge der Woche</div>
+      <span class="challenge-counter">${doneCount}/${total} · Woche ${info.index + 1}</span>
+    </div>
+    <div class="challenge-body">
+      <div class="challenge-icon"><i class="ti ${esc(ch.icon)}" aria-hidden="true"></i></div>
+      <div class="challenge-info">
+        <div class="challenge-title">${esc(ch.title)}</div>
+        <div class="challenge-desc">${esc(ch.desc)}</div>
+        ${status}
+      </div>
+    </div>
+    ${done ? '' : `<div class="challenge-foot">Noch ${daysLeft} Tag${daysLeft === 1 ? '' : 'e'} · neue Challenge am Montag</div>`}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
 // ACHIEVEMENTS — collectible badges, fun for kids
 // ═══════════════════════════════════════════════════════
 // Each achievement defines progress(st) -> {cur, target}. Unlocked once cur >= target.
@@ -2563,19 +2706,37 @@ function checkAchievements() {
   return newly;
 }
 
-function celebrateAchievement(a) {
+// Generic celebration popup — queued so multiple unlocks (e.g. an achievement
+// AND a weekly challenge in the same scan) show one after another, not on top.
+let celebrationQueue = [];
+let celebrationActive = false;
+function showCelebration(icon, label, title, desc) {
+  celebrationQueue.push({ icon, label, title, desc });
+  if (!celebrationActive) runNextCelebration();
+}
+function runNextCelebration() {
+  if (!celebrationQueue.length) { celebrationActive = false; return; }
+  celebrationActive = true;
+  const c = celebrationQueue.shift();
   if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 60]);
   fireConfetti();
   const pop = document.getElementById('achievementPop');
   pop.innerHTML = `
     <div class="ach-pop-inner">
-      <div class="ach-pop-icon"><i class="ti ${esc(a.icon)}" aria-hidden="true"></i></div>
-      <div class="ach-pop-label">Erfolg freigeschaltet!</div>
-      <div class="ach-pop-title">${esc(a.title)}</div>
-      <div class="ach-pop-desc">${esc(a.desc)}</div>
+      <div class="ach-pop-icon"><i class="ti ${esc(c.icon)}" aria-hidden="true"></i></div>
+      <div class="ach-pop-label">${esc(c.label)}</div>
+      <div class="ach-pop-title">${esc(c.title)}</div>
+      <div class="ach-pop-desc">${esc(c.desc)}</div>
     </div>`;
   pop.classList.add('show');
-  setTimeout(() => pop.classList.remove('show'), 3200);
+  setTimeout(() => {
+    pop.classList.remove('show');
+    setTimeout(runNextCelebration, 400);
+  }, 3000);
+}
+
+function celebrateAchievement(a) {
+  showCelebration(a.icon, 'Erfolg freigeschaltet!', a.title, a.desc);
 }
 
 function renderAchievements() {
@@ -2733,6 +2894,8 @@ function addCard() {
     pricing: pendingCard.pricing || null,
     cardId: pendingCard.id || '',
     cardNumber: pendingCard.cardNumber || '',
+    hp: pendingCard.hp != null ? pendingCard.hp : null,   // weekly-challenge data
+    types: Array.isArray(pendingCard.types) ? pendingCard.types : [],
     addedAt: Date.now()
   });
   // Reset sort to newest so the just-added card is visible at the top
@@ -2757,13 +2920,17 @@ function addCard() {
   else if (count % 100 === 0) msg = `🎊 ${count} Karten!`;
   else msg = '✓ Karte hinzugefügt!';
 
+  // Did this card complete the current weekly challenge? (celebrates if so)
+  const challengeDone = checkChallengeProgress(true);
+
   pendingCard = null;
   resetScanUI();
 
-  // If an achievement unlocked, celebrate that instead of the generic toast
+  // Celebrate the strongest event; queued celebrations stack safely.
+  // Toast only if nothing more exciting happened.
   if (newAchievements.length) {
     celebrateAchievement(newAchievements[0]);
-  } else {
+  } else if (!challengeDone) {
     showToast(msg);
   }
 }
@@ -2839,6 +3006,9 @@ updateFilterBadge();
 // Back-fill achievements for existing collections (silent — no popup on load)
 checkAchievements();
 renderAchievements();
+// Weekly challenge: render + silently back-fill completion (no popup on load)
+renderWeeklyChallenge();
+checkChallengeProgress(false);
 setTimeout(maybeShowInstallHint, 1500);
 </script>
 </body>
