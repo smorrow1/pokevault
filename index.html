@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v12 — „Spielen"-Bereich: Challenge + Set-Fortschritt + Erfolge in einem einklappbaren Block -->
+<!-- PokéVault v13 — Scan als Vollbild-Overlay: Auslöser immer sichtbar, kein Scrollen nötig -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -41,9 +41,11 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .scan-trigger .icon{font-size:36px;color:#0F6E56;margin-bottom:8px}
 .scan-trigger h2{font-size:16px;font-weight:600;color:#085041;margin-bottom:4px}
 .scan-trigger p{font-size:13px;color:#0F6E56}
-#videoWrap{display:none;border-radius:16px;overflow:hidden;background:#000;margin-bottom:10px;position:relative}
-/* Portrait camera stage — fixed height based on viewport */
-.cam-stage{position:relative;width:100%;height:62vh;max-height:600px;background:#000;overflow:hidden}
+/* Full-screen camera overlay — capture button is always reachable, no scrolling.
+   Shown via JS by setting display:flex. */
+#videoWrap{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column;overflow:hidden}
+/* Camera stage fills all space above the bottom control bar */
+.cam-stage{position:relative;width:100%;flex:1;min-height:0;background:#000;overflow:hidden}
 #video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 /* Card guide frame — FIXED card aspect ratio (5:7), centred, device-independent.
    Sized by height so it keeps real card proportions regardless of screen ratio. */
@@ -61,7 +63,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .cam-cardback{position:absolute;inset:8px;opacity:0.7;transition:opacity 0.4s ease;pointer-events:none;z-index:3}
 .cam-cardback.hidden{opacity:0}
 /* Sharpness / stability status pill */
-.cam-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:7;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;display:flex;align-items:center;gap:6px;pointer-events:none;transition:background 0.3s,color 0.3s;white-space:nowrap}
+.cam-status{position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:7;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;display:flex;align-items:center;gap:6px;pointer-events:none;transition:background 0.3s,color 0.3s;white-space:nowrap}
 .cam-status.good{background:rgba(29,158,117,0.92);color:#fff}
 .cam-status.blurry{background:rgba(240,180,41,0.92);color:#1a1a18}
 .cam-status i{font-size:14px}
@@ -69,7 +71,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .cam-focus-ring{position:absolute;width:70px;height:70px;border:2px solid #5DE0B0;border-radius:50%;transform:translate(-50%,-50%) scale(1.4);opacity:0;pointer-events:none;z-index:5;transition:none}
 .cam-focus-ring.show{animation:focusPulse 0.6s ease-out}
 @keyframes focusPulse{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)}}
-.video-overlay{background:#111;padding:14px 12px;display:flex;gap:10px;align-items:center}
+.video-overlay{background:#111;padding:14px 12px calc(14px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;flex-shrink:0}
 .btn-capture{flex:1;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .btn-capture:active{background:#178563}
 .btn-capture:disabled{opacity:0.6;cursor:not-allowed}
@@ -698,7 +700,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v12';
+const APP_VERSION = 'v13';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1606,7 +1608,9 @@ async function startScan() {
   if (scanInProgress) return;
   editingCollId = null;
   resetScanUI();
-  document.getElementById('videoWrap').style.display = 'block';
+  // Full-screen camera overlay (flex column) + lock page scroll behind it
+  document.getElementById('videoWrap').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
   setCamStatus('starting', 'Kamera startet…');
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -1642,6 +1646,7 @@ async function startScan() {
     }
   } catch (e) {
     document.getElementById('videoWrap').style.display = 'none';
+    document.body.style.overflow = '';   // unlock page scroll on failure
     document.getElementById('scanTrigger').style.display = 'block';
     const msg = e.name === 'NotAllowedError'
       ? 'Kamerazugriff verweigert. Bitte in den Browser-Einstellungen erlauben.'
@@ -1781,6 +1786,7 @@ function stopCam() {
   sharpnessHistory = [];
   cameraTrack = null;
   if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  document.body.style.overflow = '';   // unlock page scroll once the camera closes
 }
 
 function resetScanUI() {
