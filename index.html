@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v15 — Auto-Auslöser nur bei scharfer UND ruhiger Karte (+Arming-Delay), löst nicht mehr verfrüht aus -->
+<!-- PokéVault v16 — Auto-Auslöser: Bewegung auf grobem Raster (toleriert Handzittern), nicht mehr „komplett still" nötig -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -710,7 +710,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v15';
+const APP_VERSION = 'v16';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1623,8 +1623,9 @@ async function startScan() {
   document.getElementById('videoWrap').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   goodSince = null;
-  prevGray = null;
+  prevSmall = null;
   sharpnessHistory = [];
+  motionHistory = [];
   scanArmedAt = Date.now();    // start the arming delay
   updateAutoToggleLabel();
   setCamStatus('starting', 'Kamera startet…');
@@ -1705,13 +1706,16 @@ function startSharpnessLoop() {
 
 function stopSharpnessLoop() {
   if (sharpnessRAF) { cancelAnimationFrame(sharpnessRAF); sharpnessRAF = null; }
-  prevGray = null;
+  prevSmall = null;
 }
 
 // Measures BOTH sharpness (focus) and motion (frame-to-frame change) in one pass.
-// sharp = variance of horizontal gradient (higher = sharper).
-// motion = mean absolute luminance change vs the previous frame (higher = more movement).
-let prevGray = null;
+// sharp  = variance of horizontal gradient on the full crop (higher = sharper).
+// motion = mean change of a heavily DOWNSCALED grid vs the previous frame. Working
+//          on an 8x11 grid (not per-pixel) means tiny hand jitter of a detailed card
+//          barely registers, while gross movement (sliding a card in) clearly does.
+const MOTION_GRID_W = 8, MOTION_GRID_H = 11;
+let prevSmall = null;
 function measureFrame(ctx, W, H) {
   let data;
   try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return { sharp: 0, motion: 999 }; }
@@ -1731,14 +1735,26 @@ function measureFrame(ctx, W, H) {
   }
   const mean = cnt ? sum / cnt : 0;
   const sharp = cnt ? (sumSq / cnt - mean * mean) : 0;
-  // Motion: mean absolute difference from the previous frame (999 on first frame)
-  let motion = 999;
-  if (prevGray && prevGray.length === n) {
-    let m = 0;
-    for (let i = 0; i < n; i++) m += Math.abs(gray[i] - prevGray[i]);
-    motion = m / n;
+
+  // Downscale to a coarse grid by block-averaging, then diff vs the previous frame.
+  const gw = MOTION_GRID_W, gh = MOTION_GRID_H;
+  const small = new Float32Array(gw * gh);
+  for (let gy = 0; gy < gh; gy++) {
+    const y0 = Math.floor(gy * H / gh), y1 = Math.floor((gy + 1) * H / gh);
+    for (let gx = 0; gx < gw; gx++) {
+      const x0 = Math.floor(gx * W / gw), x1 = Math.floor((gx + 1) * W / gw);
+      let s = 0, c = 0;
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { s += gray[y * W + x]; c++; }
+      small[gy * gw + gx] = c ? s / c : 0;
+    }
   }
-  prevGray = gray;
+  let motion = 999;   // first frame counts as "moving"
+  if (prevSmall && prevSmall.length === small.length) {
+    let m = 0;
+    for (let i = 0; i < small.length; i++) m += Math.abs(small[i] - prevSmall[i]);
+    motion = m / small.length;
+  }
+  prevSmall = small;
   return { sharp, motion };
 }
 
@@ -1746,8 +1762,11 @@ function measureFrame(ctx, W, H) {
 // and not in the first moment after the camera opens (so there's time to position).
 const AUTO_CAPTURE_DWELL_MS = 1500;   // hold steady this long before firing
 const AUTO_ARM_DELAY_MS = 1200;       // ignore the first moment after opening
-const MOTION_STABLE_THRESHOLD = 7;    // mean luminance change below this = "still"
+// Motion is measured on the coarse 8x11 grid, so this tolerates normal hand jitter
+// while still rejecting the much larger motion of sliding a card into the frame.
+const MOTION_STABLE_THRESHOLD = 12;
 let sharpnessHistory = [];
+let motionHistory = [];
 let goodSince = null;    // timestamp when the frame first became sharp+still
 let scanArmedAt = 0;     // when the camera opened (for the arming delay)
 
@@ -1757,9 +1776,17 @@ function updateSharpnessUI(score, motion) {
   if (sharpnessHistory.length > 5) sharpnessHistory.shift();
   const avg = sharpnessHistory.reduce((a, b) => a + b, 0) / sharpnessHistory.length;
 
+  // Smooth motion too, so a single jittery frame doesn't reset the countdown
+  if (motion != null) {
+    motionHistory.push(motion);
+    if (motionHistory.length > 3) motionHistory.shift();
+  }
+  const motionAvg = motionHistory.length
+    ? motionHistory.reduce((a, b) => a + b, 0) / motionHistory.length : 999;
+
   const cardback = document.getElementById('camCardback');
   const isGood = avg > 90;                                   // detailed card in focus
-  const isStable = (motion != null) && motion < MOTION_STABLE_THRESHOLD; // not moving
+  const isStable = motionAvg < MOTION_STABLE_THRESHOLD;      // not grossly moving
   const armed = (Date.now() - scanArmedAt) > AUTO_ARM_DELAY_MS;
 
   // Not sharp yet → still positioning
