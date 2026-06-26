@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PokéVault">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D9E75">
+<title>PokéVault</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%231D9E75'/%3E%3Ccircle cx='90' cy='90' r='52' fill='none' stroke='%23E1F5EE' stroke-width='10'/%3E%3Ccircle cx='90' cy='90' r='16' fill='none' stroke='%23E1F5EE' stroke-width='10'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a18;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding-bottom:120px;background:#f4f4f2}
+
+/* ── Topbar ── */
+.topbar{background:#1D9E75;color:#E1F5EE;padding:16px 16px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.pokeball{width:36px;height:36px;border-radius:50%;border:2px solid #9FE1CB;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:20px;font-weight:600}
+.topbar-sub{font-size:11px;color:#9FE1CB;margin-top:1px}
+.topbar-val .amount{font-size:22px;font-weight:600;text-align:right}
+.topbar-val .label{font-size:11px;color:#9FE1CB;text-align:right}
+
+/* ── Stats ── */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
+.stat-card{background:#fff;border-radius:8px;padding:12px 14px;border:0.5px solid #e0e0d8}
+.stat-label{font-size:12px;color:#888;display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600;color:#1a1a18}
+.stat-val.green{color:#0F6E56}
+
+/* ── Scan ── */
+.scan-section{padding:14px}
+.scan-trigger{border:1.5px dashed #9FE1CB;border-radius:12px;background:#E1F5EE;padding:22px 16px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s}
+.scan-trigger:active{background:#c5edde}
+.scan-trigger .icon{font-size:36px;color:#0F6E56;margin-bottom:8px}
+.scan-trigger h2{font-size:16px;font-weight:600;color:#085041;margin-bottom:4px}
+.scan-trigger p{font-size:13px;color:#0F6E56}
+#videoWrap{display:none;border-radius:16px;overflow:hidden;background:#000;margin-bottom:10px;position:relative}
+/* Portrait camera stage — fixed height based on viewport */
+.cam-stage{position:relative;width:100%;height:62vh;max-height:600px;background:#000;overflow:hidden}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+/* Card guide frame — FIXED card aspect ratio (5:7), centred, device-independent.
+   Sized by height so it keeps real card proportions regardless of screen ratio. */
+.cam-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:72%;aspect-ratio:5/7;max-width:82%;border:3px solid rgba(255,255,255,0.95);border-radius:14px;pointer-events:none;z-index:2}
+.cam-frame span{position:absolute;width:24px;height:24px;border:3px solid #5DE0B0}
+.cam-corner-tl{top:-3px;left:-3px;border-right:none;border-bottom:none;border-radius:14px 0 0 0}
+.cam-corner-tr{top:-3px;right:-3px;border-left:none;border-bottom:none;border-radius:0 14px 0 0}
+.cam-corner-bl{bottom:-3px;left:-3px;border-right:none;border-top:none;border-radius:0 0 0 14px}
+.cam-corner-br{bottom:-3px;right:-3px;border-left:none;border-top:none;border-radius:0 0 14px 0}
+/* Dark dimming around the frame via a single overlay with a transparent "hole"
+   created by a huge box-shadow on the frame. Reliable and always matches the frame. */
+.cam-frame::after{content:'';position:absolute;inset:-3px;border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,0.5)}
+.cam-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,0.8);padding:0 16px;pointer-events:none;z-index:3}
+.video-overlay{background:#111;padding:14px 12px;display:flex;gap:10px;align-items:center}
+.btn-capture{flex:1;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-capture:active{background:#178563}
+.btn-capture:disabled{opacity:0.6;cursor:not-allowed}
+.btn-cancel{padding:15px 18px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:12px;font-size:15px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ── Processing ── */
+#processingMsg{display:none;text-align:center;padding:28px 16px}
+.spin{font-size:36px;color:#1D9E75;display:block;margin-bottom:10px;animation:spin 1s linear infinite}
+#processingMsg p{font-size:14px;color:#666;margin:0}
+#processingMsg .sub{font-size:12px;color:#aaa;margin-top:4px}
+
+/* ── Confirm ── */
+#confirmStep{display:none}
+.confirm-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
+.confirm-wrap h3{font-size:15px;font-weight:600;margin-bottom:6px;color:#085041;display:flex;align-items:center;gap:6px}
+.confirm-hint{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
+.confirm-detected{background:#E1F5EE;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.confirm-detected strong{display:block;font-size:15px;margin-bottom:2px;color:#085041}
+.confirm-detected .sub{font-size:12px;color:#0F6E56}
+.confirm-img-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.confirm-img-row img{width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
+.confirm-fields{flex:1;display:flex;flex-direction:column;gap:8px}
+.field-label{font-size:11px;color:#888;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.03em}
+.confirm-wrap input{width:100%;padding:9px 12px;font-size:15px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
+.confirm-wrap input:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+.confirm-btns{display:flex;gap:8px;margin-top:12px}
+.btn-confirm{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-confirm:disabled{opacity:0.6;cursor:not-allowed}
+.btn-secondary{padding:12px 14px;background:#fff;color:#666;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ── Card Picker ── */
+#cardPicker{display:none}
+.picker-wrap{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px;margin-bottom:10px}
+.picker-wrap h3{font-size:15px;font-weight:600;color:#085041;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.picker-sub{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
+.picker-filter{width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #ddd;border-radius:8px;background:#f9f9f7;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit;margin-bottom:10px}
+.picker-filter:focus{border-color:#1D9E75;background:#fff;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+.picker-empty-filter{font-size:13px;color:#aaa;text-align:center;padding:16px 0;margin:0}
+.picker-loadmore{width:100%;padding:11px;font-size:13px;font-weight:600;color:#085041;background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:8px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.picker-loadmore:disabled{opacity:0.6;cursor:not-allowed}
+/* No max-height here — let it be part of the natural page scroll */
+.picker-grid{display:flex;flex-direction:column;gap:8px}
+.picker-item{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;border:0.5px solid #e0e0d8;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;transition:background 0.1s}
+.picker-item:active,.picker-item.selected{border-color:#1D9E75;background:#E1F5EE}
+.picker-thumb{width:44px;height:62px;border-radius:5px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0;background:#f1f1ed}
+.picker-thumb-ph{width:44px;height:62px;border-radius:5px;background:#f1f1ed;display:flex;align-items:center;justify-content:center;font-size:18px;color:#ccc;flex-shrink:0}
+.picker-info{flex:1;min-width:0}
+.picker-name{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.picker-set{font-size:12px;color:#888;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picker-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.picker-num{font-size:11px;color:#aaa;background:#f4f4f2;padding:2px 6px;border-radius:4px}
+.picker-rarity{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#FAEEDA;color:#633806}
+.picker-price{font-size:13px;font-weight:700;color:#0F6E56;margin-left:auto;flex-shrink:0;padding-left:8px}
+.picker-no-price{font-size:11px;color:#bbb;margin-left:auto;flex-shrink:0}
+
+/* ── Duplicate warning ── */
+.dup-warn{background:#FFF4E0;border:0.5px solid #F0B429;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#7A4800;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.dup-warn i{flex-shrink:0;margin-top:1px;color:#D97706}
+
+/* ── Result card ── */
+#scanResult{display:none}
+.result-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
+.result-header{display:flex;gap:12px;margin-bottom:12px}
+.card-img{width:80px;height:112px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0}
+.card-img-ph{width:80px;height:112px;border-radius:6px;background:#f1f1ed;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:28px;color:#aaa;flex-shrink:0}
+.result-info{flex:1;min-width:0}
+.result-name{font-size:17px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.result-num{font-size:12px;color:#aaa;font-weight:400}
+.result-set{font-size:12px;color:#888;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.result-release{font-size:11px;color:#aaa;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.rarity-pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:#FAEEDA;color:#633806}
+.price-block{background:#f4f4f2;border-radius:8px;padding:10px 12px;margin:10px 0}
+.price-block-title{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.price-item{background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid #e8e8e0}
+.price-item-label{font-size:11px;color:#aaa;margin-bottom:2px}
+.price-item-val{font-size:15px;font-weight:700;color:#0F6E56}
+.price-item-val.muted{color:#bbb;font-size:13px;font-weight:400}
+.price-updated{font-size:10px;color:#bbb;margin-top:6px;text-align:right}
+.price-summary{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:0.5px solid #eee;margin-top:4px}
+.price-summary-val{font-size:20px;font-weight:700;color:#0F6E56}
+.price-summary-na{font-size:14px;color:#aaa}
+.result-btns{display:flex;gap:8px;margin-top:12px}
+.btn-add{flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn-wrong{padding:12px 14px;background:#fff;color:#555;border:0.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:4px;white-space:nowrap}
+
+/* ── Manual search ── */
+.manual-section{padding:0 14px 14px;display:flex;gap:8px}
+.manual-input{flex:1;padding:12px 14px;font-size:15px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
+.manual-input:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+.btn-search{padding:12px 14px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-width:48px;display:flex;align-items:center;justify-content:center}
+.btn-search:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ── Collection ── */
+.section-header{padding:8px 14px 6px;display:flex;justify-content:space-between;align-items:center}
+.section-title{font-size:16px;font-weight:600}
+.section-count{font-size:12px;color:#888}
+/* Collection search */
+.coll-search-row{padding:0 14px 10px;position:relative}
+.coll-search-icon{position:absolute;left:26px;top:50%;transform:translateY(-50%);color:#aaa;font-size:16px;pointer-events:none;margin-top:-5px}
+.coll-search-input{width:100%;padding:10px 12px 10px 38px;font-size:14px;border:0.5px solid #ddd;border-radius:10px;background:#fff;color:#1a1a18;outline:none;-webkit-appearance:none;font-family:inherit}
+.coll-search-input:focus{border-color:#1D9E75;box-shadow:0 0 0 2px rgba(29,158,117,0.15)}
+/* Toolbar */
+.coll-toolbar{padding:0 14px 10px;display:flex;gap:8px;align-items:center}
+.toolbar-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:13px;font-weight:600;border:0.5px solid #ddd;border-radius:10px;background:#fff;color:#444;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.toolbar-btn[aria-expanded="true"]{background:#E1F5EE;border-color:#9FE1CB;color:#085041}
+.filter-count-badge{background:#1D9E75;color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.toolbar-sort{flex:1;padding:9px 32px 9px 12px;font-size:13px;border:0.5px solid #ddd;border-radius:10px;background:#fff;color:#1a1a18;font-family:inherit;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+/* Collapsible filter panel */
+.filter-panel{padding:12px 14px;margin:0 14px 12px;background:#fff;border:0.5px solid #e0e0d8;border-radius:12px}
+.filter-group{margin-bottom:12px}
+.filter-group:last-of-type{margin-bottom:0}
+.filter-group-label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:7px}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:6px 12px;border-radius:999px;border:0.5px solid #ddd;background:#fff;color:#666;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all 0.12s}
+.chip.active{background:#E1F5EE;border-color:#9FE1CB;color:#085041;font-weight:600}
+.filter-reset{margin-top:12px;width:100%;padding:9px;font-size:13px;color:#A32D2D;background:#FCEBEB;border:0.5px solid #F0B0B0;border-radius:8px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;-webkit-tap-highlight-color:transparent}
+.coll-grid{padding:0 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.coll-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:10px;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.1s}
+.coll-card:active{transform:scale(0.97)}
+/* Newest card gets a subtle gold glow + NEU badge */
+.coll-card.newest{border-color:#F0B429;box-shadow:0 0 0 2px rgba(240,180,41,0.25)}
+.coll-badge-new{position:absolute;top:-6px;left:8px;background:#F0B429;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;z-index:2;letter-spacing:0.03em;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.coll-thumb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px;background:#f1f1ed}
+.coll-thumb-ph{width:100%;aspect-ratio:3/4;background:#f1f1ed;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#ccc}
+.coll-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.coll-set{font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.coll-release{font-size:10px;color:#aaa;margin-bottom:5px}
+.coll-price{font-size:14px;font-weight:700;color:#0F6E56}
+.coll-price.no-price{color:#bbb;font-weight:400;font-size:12px}
+.coll-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.95);border:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#888;-webkit-tap-highlight-color:transparent;z-index:3}
+.coll-del:active{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+.empty-state{text-align:center;padding:48px 20px;color:#aaa;grid-column:1/-1}
+.empty-state i{font-size:48px;display:block;margin-bottom:12px;opacity:0.5}
+.empty-state p{font-size:14px;line-height:1.6}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 14px 40px}
+.modal-bg.open{display:block}
+.modal{background:#fff;border-radius:16px;padding:16px;max-width:440px;margin:0 auto;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:#f4f4f2;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:#555;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.modal-img-wrap{display:flex;gap:14px;margin-bottom:12px}
+.modal-img{width:110px;height:154px;object-fit:cover;border-radius:8px;border:0.5px solid #e0e0d8;flex-shrink:0}
+.modal-img-ph{width:110px;height:154px;background:#f1f1ed;border-radius:8px;border:0.5px solid #e0e0d8;display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc;flex-shrink:0}
+.modal-card-info{flex:1;min-width:0;padding-top:4px}
+.modal-name{font-size:18px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.modal-meta{font-size:12px;color:#888;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.modal-release{font-size:12px;color:#aaa;margin-bottom:8px}
+.modal-section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px}
+.modal-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.btn-change-edition{padding:11px;background:#f4f4f2;color:#444;border:0.5px solid #ddd;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;width:100%}
+.btn-close-modal{padding:11px;background:#fff;color:#888;border:0.5px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;width:100%;text-align:center}
+
+/* ── Undo toast ── */
+#undoBar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;pointer-events:auto;opacity:0;transition:opacity 0.2s;white-space:nowrap;z-index:9999;display:flex;align-items:center;gap:12px;max-width:90vw}
+#undoBar.show{opacity:1}
+#undoBar button{background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+
+/* ── API setup ── */
+.api-section{padding:14px}
+.api-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
+.api-card h3{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:#085041}
+.api-card p{font-size:12px;color:#666;margin-bottom:10px;line-height:1.6}
+.api-card input{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid #ddd;border-radius:8px;background:#f9f9f7;color:#1a1a18;outline:none;font-family:monospace;-webkit-appearance:none}
+.api-card input:focus{border-color:#1D9E75}
+.btn-save-api{margin-top:8px;width:100%;padding:11px;background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.info-box{background:#E1F5EE;border-radius:8px;padding:10px 12px;font-size:12px;color:#0F6E56;line-height:1.6;margin-top:10px;display:flex;align-items:flex-start;gap:6px}
+.error-msg{background:#FCEBEB;border-radius:8px;padding:10px 12px;font-size:13px;color:#7A1515;margin-bottom:10px;display:flex;align-items:flex-start;gap:6px;line-height:1.5}
+.error-msg i{flex-shrink:0;margin-top:1px}
+
+/* Set progress */
+.set-progress-section{padding:14px 14px 0}
+.set-progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.set-progress-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.set-progress-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+.set-progress-grid::-webkit-scrollbar{display:none}
+.set-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:12px;min-width:200px;flex-shrink:0}
+.set-card.complete{border-color:#1D9E75;background:linear-gradient(180deg,#F0FAF6,#fff)}
+.set-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}
+.set-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-complete-badge{font-size:11px;font-weight:600;color:#0F6E56;display:flex;align-items:center;gap:3px;flex-shrink:0}
+.set-serie{font-size:11px;color:#aaa;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-bar-track{height:8px;background:#eee;border-radius:999px;overflow:hidden;margin-bottom:6px}
+.set-bar-fill{height:100%;background:linear-gradient(90deg,#1D9E75,#5DE0B0);border-radius:999px;transition:width 0.4s ease}
+.set-count{font-size:12px;color:#666;font-weight:500}
+.set-card-arrow{font-size:16px;color:#bbb;flex-shrink:0}
+.set-card-cta{font-size:11px;color:#1D9E75;font-weight:600;margin-top:6px}
+/* Set detail modal */
+.set-detail-head{margin-bottom:12px;padding-right:36px}
+.set-detail-title{font-size:18px;font-weight:700;margin-bottom:2px}
+.set-detail-serie{font-size:12px;color:#aaa;margin-bottom:8px}
+.set-detail-stats{display:flex;gap:8px;flex-wrap:wrap}
+.setstat{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:4px}
+.setstat.have{background:#E1F5EE;color:#0F6E56}
+.setstat.missing{background:#FAEEDA;color:#7A4800}
+.setdetail-legend{font-size:11px;color:#999;line-height:1.5;margin-bottom:12px}
+.setdetail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.setdetail-card{aspect-ratio:5/7;border-radius:6px;overflow:hidden;position:relative;background:#f1f1ed}
+.setdetail-card.have img{width:100%;height:100%;object-fit:cover;display:block}
+.setdetail-card.have.noimg{background:#E1F5EE}
+.setdetail-num{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;text-align:center;padding:1px 0}
+.setdetail-card.missing{background:#f4f4f2;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center}
+.setdetail-missing-inner{display:flex;flex-direction:column;align-items:center;gap:2px;color:#bbb}
+.setdetail-missing-inner i{font-size:20px}
+.setdetail-missing-inner span{font-size:9px;font-weight:600}
+/* Backup */
+.backup-section{padding:16px 14px 0}
+.backup-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:14px}
+.backup-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.backup-head i{font-size:22px;color:#1D9E75;flex-shrink:0;margin-top:1px}
+.backup-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.backup-sub{font-size:12px;color:#888;line-height:1.4}
+.backup-btns{display:flex;gap:8px;flex-wrap:wrap}
+.backup-btn{flex:1;min-width:130px;padding:11px;background:#fff;color:#444;border:0.5px solid #ddd;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.backup-btn.primary{background:#E1F5EE;color:#085041;border-color:#9FE1CB}
+.backup-btn:active{opacity:0.7}
+.backup-note{font-size:11px;color:#aaa;margin-top:10px}
+.backup-note.warn{color:#B45309;font-weight:500}
+/* Achievements */
+.achievements-section{padding:16px 14px 0}
+.achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.achievements-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.achievements-count{font-size:13px;color:#888;font-weight:600;background:#fff;border:0.5px solid #e0e0d8;border-radius:999px;padding:3px 10px}
+.achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ach-badge{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:10px 6px;text-align:center;transition:transform 0.1s}
+.ach-badge.unlocked{border-color:#F0B429;background:linear-gradient(180deg,#FFFBF0,#fff)}
+.ach-badge.locked{opacity:0.55}
+.ach-badge-icon{font-size:24px;margin-bottom:4px}
+.ach-badge.unlocked .ach-badge-icon{color:#F0B429}
+.ach-badge.locked .ach-badge-icon{color:#ccc}
+.ach-badge-title{font-size:10px;font-weight:600;color:#555;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ach-badge.locked .ach-badge-title{color:#bbb}
+/* Achievement unlock popup */
+#achievementPop{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;z-index:10000;pointer-events:none;padding:20px}
+#achievementPop.show{display:flex;animation:achFade 0.3s ease}
+.ach-pop-inner{background:#fff;border-radius:20px;padding:28px 32px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25);border:2px solid #F0B429;max-width:300px;animation:achPop 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+.ach-pop-icon{font-size:56px;color:#F0B429;margin-bottom:8px;animation:achSpin 0.6s ease}
+.ach-pop-label{font-size:12px;font-weight:700;color:#F0B429;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.ach-pop-title{font-size:22px;font-weight:700;color:#1a1a18;margin-bottom:4px}
+.ach-pop-desc{font-size:13px;color:#888;line-height:1.4}
+@keyframes achFade{from{opacity:0}to{opacity:1}}
+@keyframes achPop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes achSpin{from{transform:rotate(-20deg) scale(0.5)}to{transform:rotate(0) scale(1)}}
+/* Confetti */
+.confetti-container{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9999;overflow:hidden}
+.confetti-piece{position:absolute;top:-20px;width:9px;height:9px;border-radius:2px;animation:confettiFall linear forwards}
+@keyframes confettiFall{to{transform:translateY(105vh) rotate(720deg);opacity:0.9}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app" role="main">
+
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <div class="pokeball" aria-hidden="true"><i class="ti ti-pokeball"></i></div>
+      <div>
+        <div class="topbar-title">PokéVault</div>
+        <div class="topbar-sub">Deine Karten-Sammlung</div>
+      </div>
+    </div>
+    <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
+      <div class="amount" id="totalVal">€0.00</div>
+      <div class="label">Gesamtwert</div>
+    </div>
+  </header>
+
+  <section class="stats-row" aria-label="Sammlungsstatistiken">
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> Karten</div>
+      <div class="stat-val" id="cardCount" aria-live="polite">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-star" aria-hidden="true"></i> Wertvollste</div>
+      <div class="stat-val green" id="topVal">—</div>
+    </div>
+  </section>
+
+  <!-- Set progress — the retention loop: "what do I still need?" -->
+  <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
+    <div class="set-progress-header">
+      <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> Set-Fortschritt</h2>
+    </div>
+    <div class="set-progress-grid"></div>
+  </section>
+
+  <!-- Achievements — collectible badges -->
+  <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
+    <div class="achievements-header">
+      <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
+      <span class="achievements-count" id="achievementsCount">0 / 0</span>
+    </div>
+    <div class="achievements-grid" id="achievementsGrid"></div>
+  </section>
+
+  <!-- API Key setup — only shown when no key stored -->
+  <section class="api-section" id="apiSection" aria-label="API-Key Einrichtung">
+    <div class="api-card">
+      <h2 style="font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:#085041">
+        <i class="ti ti-key" style="font-size:16px" aria-hidden="true"></i> Anthropic API-Key <span style="font-weight:400;color:#aaa;font-size:12px">(optional)</span>
+      </h2>
+      <p>Für automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong> → API Keys. Wird nur lokal auf diesem Gerät gespeichert.</p>
+      <label for="apiKeyInput" class="field-label" style="display:block;margin-bottom:4px">API-Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false"/>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern & loslegen</button>
+      <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i> Ohne Key: Manuelle Suche funktioniert sofort und vollständig!</div>
+    </div>
+  </section>
+
+  <!-- Scan -->
+  <section class="scan-section" aria-label="Karte scannen oder suchen">
+    <div class="scan-trigger" id="scanTrigger" onclick="startScan()" role="button" tabindex="0" aria-label="Kamera öffnen um eine Karte zu scannen" onkeydown="if(event.key==='Enter'||event.key===' ')startScan()">
+      <div class="icon" aria-hidden="true"><i class="ti ti-camera"></i></div>
+      <h2 style="font-size:16px;font-weight:600;color:#085041;margin-bottom:4px">Karte scannen</h2>
+      <p>Kamera öffnen → fotografieren → Edition wählen</p>
+    </div>
+
+    <div id="videoWrap" aria-label="Kamera-Vorschau">
+      <div class="cam-stage">
+        <video id="video" autoplay playsinline muted aria-label="Kamera-Stream"></video>
+        <div class="cam-frame" aria-hidden="true">
+          <span class="cam-corner-tl"></span>
+          <span class="cam-corner-tr"></span>
+          <span class="cam-corner-bl"></span>
+          <span class="cam-corner-br"></span>
+        </div>
+        <div class="cam-hint" aria-hidden="true">Karte in den Rahmen legen — Handy hochkant halten</div>
+      </div>
+      <div class="video-overlay">
+        <button class="btn-capture" id="captureBtn" onclick="captureFrame()" aria-label="Karte jetzt scannen">
+          <i class="ti ti-camera" aria-hidden="true"></i> Scannen
+        </button>
+        <button class="btn-cancel" onclick="cancelScan()" aria-label="Scan abbrechen">✕</button>
+      </div>
+    </div>
+    <canvas id="snap" style="display:none" aria-hidden="true"></canvas>
+
+    <div id="processingMsg" role="status" aria-live="polite">
+      <i class="spin ti ti-loader-2" aria-hidden="true"></i>
+      <p id="processingText">Bitte warten…</p>
+      <p class="sub" id="processingStep"></p>
+    </div>
+
+    <div id="confirmStep" aria-live="polite"></div>
+    <div id="cardPicker" aria-live="polite"></div>
+    <div id="scanResult" aria-live="polite"></div>
+  </section>
+
+  <!-- Manual search -->
+  <div class="manual-section" role="search">
+    <label for="manualInput" style="display:none">Kartenname suchen</label>
+    <input
+      type="search"
+      id="manualInput"
+      class="manual-input"
+      placeholder="Kartenname suchen, z.B. Mewtu…"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')manualSearch()"
+      aria-label="Pokémon-Kartenname eingeben"
+    />
+    <button class="btn-search" id="manualBtn" onclick="manualSearch()" aria-label="Suchen">
+      <i class="ti ti-search" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Collection -->
+  <section aria-label="Meine Sammlung">
+    <div class="section-header">
+      <h2 class="section-title">Meine Sammlung</h2>
+      <span class="section-count" id="collCount" aria-live="polite">0 Karten</span>
+    </div>
+
+    <!-- Search within own collection -->
+    <div class="coll-search-row">
+      <i class="ti ti-search coll-search-icon" aria-hidden="true"></i>
+      <input type="search" id="collSearch" class="coll-search-input" placeholder="In Sammlung suchen…" autocomplete="off" oninput="setCollQuery(this.value)" aria-label="In meiner Sammlung suchen"/>
+    </div>
+
+    <!-- Toolbar: filter toggle + sort, always compact in one row -->
+    <div class="coll-toolbar">
+      <button class="toolbar-btn" id="filterToggle" onclick="toggleFilters()" aria-expanded="false" aria-controls="filterPanel">
+        <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
+        <span>Filter</span>
+        <span class="filter-count-badge" id="filterCountBadge" style="display:none">0</span>
+      </button>
+      <select id="sortSelect" class="toolbar-sort" onchange="setSort(this.value)" aria-label="Sammlung sortieren">
+        <option value="newest">Neueste zuerst</option>
+        <option value="price-desc">Wert: hoch → niedrig</option>
+        <option value="price-asc">Wert: niedrig → hoch</option>
+        <option value="name">Name (A–Z)</option>
+        <option value="release">Erscheinungsdatum</option>
+      </select>
+    </div>
+
+    <!-- Collapsible filter panel — hidden by default to keep the UI clean -->
+    <div class="filter-panel" id="filterPanel" hidden>
+      <div class="filter-group">
+        <div class="filter-group-label">Seltenheit</div>
+        <div class="filter-chips" id="rarityChips">
+          <button class="chip active" data-filter="rarity" data-value="all" onclick="setRarityFilter('all',this)">Alle</button>
+          <button class="chip" data-filter="rarity" data-value="common" onclick="setRarityFilter('common',this)">Common</button>
+          <button class="chip" data-filter="rarity" data-value="uncommon" onclick="setRarityFilter('uncommon',this)">Uncommon</button>
+          <button class="chip" data-filter="rarity" data-value="rare" onclick="setRarityFilter('rare',this)">Rare</button>
+          <button class="chip" data-filter="rarity" data-value="holo" onclick="setRarityFilter('holo',this)">Holo</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Wert</div>
+        <div class="filter-chips" id="priceChips">
+          <button class="chip active" data-filter="price" data-value="all" onclick="setPriceFilter('all',this)">Alle</button>
+          <button class="chip" data-filter="price" data-value="under1" onclick="setPriceFilter('under1',this)">Unter €1</button>
+          <button class="chip" data-filter="price" data-value="1to5" onclick="setPriceFilter('1to5',this)">€1–5</button>
+          <button class="chip" data-filter="price" data-value="over5" onclick="setPriceFilter('over5',this)">Über €5</button>
+          <button class="chip" data-filter="price" data-value="over20" onclick="setPriceFilter('over20',this)">Über €20</button>
+        </div>
+      </div>
+      <div class="filter-group" id="setFilterGroup">
+        <div class="filter-group-label">Set</div>
+        <div class="filter-chips" id="setChips"><!-- populated dynamically --></div>
+      </div>
+      <button class="filter-reset" id="filterReset" onclick="resetFilters()" style="display:none">
+        <i class="ti ti-x" aria-hidden="true"></i> Alle Filter zurücksetzen
+      </button>
+    </div>
+
+    <div class="coll-grid" id="collGrid" role="list"></div>
+  </section>
+
+  <!-- Backup & data safety -->
+  <section class="backup-section" id="backupSection" aria-label="Datensicherung">
+    <div class="backup-card">
+      <div class="backup-head">
+        <i class="ti ti-shield-check" aria-hidden="true"></i>
+        <div>
+          <div class="backup-title">Sammlung sichern</div>
+          <div class="backup-sub">Lade ein Backup herunter, damit nichts verloren geht.</div>
+        </div>
+      </div>
+      <div class="backup-btns">
+        <button class="backup-btn primary" onclick="exportCollection()">
+          <i class="ti ti-download" aria-hidden="true"></i> Backup herunterladen
+        </button>
+        <button class="backup-btn" onclick="document.getElementById('importFile').click()">
+          <i class="ti ti-upload" aria-hidden="true"></i> Backup laden
+        </button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importCollection(event)"/>
+      </div>
+      <div class="backup-note" id="lastBackupNote"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Card detail modal -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)" role="dialog" aria-modal="true" aria-labelledby="modalCardName">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Undo bar -->
+<div id="undoBar" role="alert" aria-live="assertive">
+  <span id="undoMsg">Karte entfernt</span>
+  <button onclick="undoDelete()" aria-label="Löschen rückgängig machen">Rückgängig</button>
+</div>
+
+<!-- Achievement unlock popup -->
+<div id="achievementPop" role="alert" aria-live="assertive"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let mediaStream = null;
+let collection = loadCollection();
+let activeSort = 'newest';
+// Multi-dimensional filters
+let filterRarity = 'all';
+let filterPrice = 'all';
+let filterSet = 'all';
+let collQuery = '';
+let pendingCard = null;           // Card about to be added
+let currentPickerCards = [];      // Enriched editions currently shown
+let currentPickerName = '';
+let currentPickerRemaining = [];  // Raw candidates not yet loaded (for "load more")
+let editingCollId = null;         // stable card ID being re-editioned (null = new card)
+let scanInProgress = false;       // debounce flag
+let deletedCard = null;           // for undo
+let deletedIndex = -1;
+let undoTimer = null;
+
+// ═══════════════════════════════════════════════════════
+// PERSISTENCE  — stable UUIDs instead of array indices
+// ═══════════════════════════════════════════════════════
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function loadCollection() {
+  try {
+    const raw = localStorage.getItem('pokevault_v6');
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function save() {
+  try { localStorage.setItem('pokevault_v6', JSON.stringify(collection)); }
+  catch (e) { showError('Speichern fehlgeschlagen — Speicher voll?'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// BACKUP — export / import so a cleared cache never loses data
+// ═══════════════════════════════════════════════════════
+function exportCollection() {
+  if (!collection.length) { showToast('Sammlung ist leer'); return; }
+  const payload = {
+    app: 'PokéVault',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    cardCount: collection.length,
+    cards: collection
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `pokevault-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem('pokevault_lastBackup', Date.now().toString());
+  updateBackupNote();
+  showToast('Backup gespeichert!');
+}
+
+function importCollection(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = Array.isArray(data) ? data : data.cards;
+      if (!Array.isArray(imported)) throw new Error('Ungültiges Format');
+
+      // Merge: skip cards already present (by uid), keep everything else
+      const existingUids = new Set(collection.map(c => c.uid));
+      let added = 0;
+      for (const card of imported) {
+        if (!card || typeof card !== 'object') continue;
+        // Ensure every imported card has a uid
+        if (!card.uid) card.uid = uid();
+        if (!existingUids.has(card.uid)) {
+          collection.push(card);
+          existingUids.add(card.uid);
+          added++;
+        }
+      }
+      save(); updateStats(); renderCollection();
+      showToast(added ? `${added} Karten importiert!` : 'Alle Karten bereits vorhanden');
+    } catch (err) {
+      showToast('Backup konnte nicht gelesen werden');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // allow re-importing the same file
+}
+
+function updateBackupNote() {
+  const note = document.getElementById('lastBackupNote');
+  if (!note) return;
+  const last = localStorage.getItem('pokevault_lastBackup');
+  if (!last) {
+    note.textContent = collection.length >= 5 ? '⚠️ Noch kein Backup erstellt' : '';
+    note.className = 'backup-note' + (collection.length >= 5 ? ' warn' : '');
+    return;
+  }
+  const days = Math.floor((Date.now() - parseInt(last)) / 86400000);
+  note.textContent = days === 0 ? 'Letztes Backup: heute' : `Letztes Backup: vor ${days} Tag(en)`;
+  note.className = 'backup-note';
+}
+
+// ═══════════════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════════════
+function getKey() { return localStorage.getItem('pokevault_apikey') || ''; }
+
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) { showError('Bitte API-Key eingeben.'); return; }
+  localStorage.setItem('pokevault_apikey', k);
+  document.getElementById('apiSection').style.display = 'none';
+  showToast('API-Key gespeichert!');
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtPrice(v) {
+  if (v == null) return null;
+  return '€' + parseFloat(v).toFixed(2);
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  try { return new Date(s).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'}); }
+  catch (e) { return String(s); }
+}
+
+// Fetch with timeout — signal is added separately so it never conflicts with body/headers
+async function fetchWithTimeout(url, opts = {}, ms = 8000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, ...opts });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Safe JSON.parse
+function safeJson(str) {
+  try {
+    const cleaned = str.replace(/```json\n?|```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST / ERROR / UNDO
+// ═══════════════════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg) {
+  // Use undoBar for regular toasts that have no undo
+  // Use a lightweight inline toast for confirmations
+  const bar = document.getElementById('undoBar');
+  document.getElementById('undoMsg').textContent = msg;
+  // Hide undo button for non-delete toasts
+  bar.querySelector('button').style.display = 'none';
+  bar.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => bar.classList.remove('show'), 2600);
+}
+
+function showDeleteToast(msg) {
+  const bar = document.getElementById('undoBar');
+  document.getElementById('undoMsg').textContent = msg;
+  bar.querySelector('button').style.display = '';
+  bar.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    bar.classList.remove('show');
+    deletedCard = null; deletedIndex = -1; // commit delete after timeout
+  }, 4000);
+}
+
+function showError(msg) {
+  // Inline error in scan section
+  const el = document.getElementById('scanResult');
+  el.innerHTML = `<div class="error-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>${esc(msg)}</span></div>
+    <button class="btn-secondary" style="width:100%;margin-top:8px" onclick="resetScanUI()">Zurück</button>`;
+  el.style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// STATS & COLLECTION RENDER
+// ═══════════════════════════════════════════════════════
+function updateStats() {
+  const total = collection.reduce((s, c) => s + (c.price || 0), 0);
+  document.getElementById('totalVal').textContent = '€' + total.toFixed(2);
+  document.getElementById('cardCount').textContent = collection.length;
+  document.getElementById('collCount').textContent = collection.length + ' Karten';
+  if (!collection.length) { document.getElementById('topVal').textContent = '—'; return; }
+  const top = [...collection].sort((a, b) => (b.price || 0) - (a.price || 0))[0];
+  document.getElementById('topVal').textContent = '€' + (top.price || 0).toFixed(2);
+  updateBackupNote();
+}
+
+function filteredCards() {
+  let cards = [...collection];
+
+  // Rarity filter
+  if (filterRarity !== 'all') {
+    cards = cards.filter(c => {
+      const r = (c.rarity || '').toLowerCase();
+      switch (filterRarity) {
+        case 'common':   return r === 'common';
+        case 'uncommon': return r === 'uncommon';
+        case 'rare':     return r.includes('rare') && !r.includes('holo');
+        case 'holo':     return r.includes('holo');
+        default:         return true;
+      }
+    });
+  }
+
+  // Price filter
+  if (filterPrice !== 'all') {
+    cards = cards.filter(c => {
+      const p = c.price || 0;
+      switch (filterPrice) {
+        case 'under1': return p > 0 && p < 1;
+        case '1to5':   return p >= 1 && p <= 5;
+        case 'over5':  return p > 5;
+        case 'over20': return p > 20;
+        default:       return true;
+      }
+    });
+  }
+
+  // Set filter
+  if (filterSet !== 'all') {
+    cards = cards.filter(c => c.setId === filterSet);
+  }
+
+  // Text search within collection (name or set)
+  if (collQuery) {
+    const q = collQuery.toLowerCase();
+    cards = cards.filter(c =>
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.set || '').toLowerCase().includes(q)
+    );
+  }
+
+  // Sorting
+  switch (activeSort) {
+    case 'price-desc': cards.sort((a, b) => (b.price||0) - (a.price||0)); break;
+    case 'price-asc':  cards.sort((a, b) => (a.price||0) - (b.price||0)); break;
+    case 'name':       cards.sort((a, b) => (a.name||'').localeCompare(b.name||'', 'de')); break;
+    case 'release':    cards.sort((a, b) => (b.releaseDate||'').localeCompare(a.releaseDate||'')); break;
+    case 'newest':
+    default:           cards.sort((a, b) => (b.addedAt||0) - (a.addedAt||0));
+  }
+  return cards;
+}
+
+function setSort(value) {
+  activeSort = value;
+  renderCollection();
+}
+
+// ── Multi-filter controls ───────────────────────────────
+function setRarityFilter(value, btn) {
+  filterRarity = value;
+  activateChip('rarity', btn);
+  afterFilterChange();
+}
+function setPriceFilter(value, btn) {
+  filterPrice = value;
+  activateChip('price', btn);
+  afterFilterChange();
+}
+function setSetFilter(value, btn) {
+  filterSet = value;
+  activateChip('set', btn);
+  afterFilterChange();
+}
+function setCollQuery(value) {
+  collQuery = value.trim();
+  afterFilterChange();
+}
+
+function activateChip(group, btn) {
+  document.querySelectorAll(`.chip[data-filter="${group}"]`).forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function afterFilterChange() {
+  updateFilterBadge();
+  renderCollection();
+}
+
+function toggleFilters() {
+  const panel = document.getElementById('filterPanel');
+  const toggle = document.getElementById('filterToggle');
+  const open = panel.hasAttribute('hidden');
+  if (open) { panel.removeAttribute('hidden'); toggle.setAttribute('aria-expanded', 'true'); }
+  else { panel.setAttribute('hidden', ''); toggle.setAttribute('aria-expanded', 'false'); }
+}
+
+function activeFilterCount() {
+  let n = 0;
+  if (filterRarity !== 'all') n++;
+  if (filterPrice !== 'all') n++;
+  if (filterSet !== 'all') n++;
+  return n;
+}
+
+function updateFilterBadge() {
+  const n = activeFilterCount();
+  const badge = document.getElementById('filterCountBadge');
+  const reset = document.getElementById('filterReset');
+  if (badge) {
+    badge.style.display = n ? 'flex' : 'none';
+    badge.textContent = n;
+  }
+  if (reset) reset.style.display = n ? 'flex' : 'none';
+}
+
+function resetFilters() {
+  filterRarity = 'all'; filterPrice = 'all'; filterSet = 'all';
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.value === 'all');
+  });
+  afterFilterChange();
+}
+
+// Build the Set filter chips from the user's actual collection
+function rebuildSetChips() {
+  const wrap = document.getElementById('setChips');
+  const group = document.getElementById('setFilterGroup');
+  if (!wrap || !group) return;
+
+  // Unique sets present in the collection, sorted by card count
+  const setMap = {};
+  for (const c of collection) {
+    if (!c.setId) continue;
+    if (!setMap[c.setId]) setMap[c.setId] = { id: c.setId, name: c.set || c.setId, count: 0 };
+    setMap[c.setId].count++;
+  }
+  const sets = Object.values(setMap).sort((a, b) => b.count - a.count);
+
+  // Hide the whole Set group if there's 0 or 1 set (nothing to filter)
+  if (sets.length < 2) {
+    group.style.display = 'none';
+    if (filterSet !== 'all') { filterSet = 'all'; }
+    return;
+  }
+  group.style.display = 'block';
+
+  let html = `<button class="chip ${filterSet==='all'?'active':''}" data-filter="set" data-value="all" onclick="setSetFilter('all',this)">Alle</button>`;
+  html += sets.map(s =>
+    `<button class="chip ${filterSet===s.id?'active':''}" data-filter="set" data-value="${esc(s.id)}" onclick="setSetFilter('${esc(s.id)}',this)">${esc(s.name)} (${s.count})</button>`
+  ).join('');
+  wrap.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// SET PROGRESS — "what do I still need" retention loop
+// ═══════════════════════════════════════════════════════
+function renderSetProgress() {
+  const wrap = document.getElementById('setProgress');
+  if (!wrap) return;
+
+  // Group owned cards by set
+  const sets = {};
+  for (const c of collection) {
+    if (!c.setId) continue;
+    if (!sets[c.setId]) {
+      sets[c.setId] = { id: c.setId, name: c.set || c.setId, serie: c.serie || '', total: c.setTotal || null, owned: new Set() };
+    }
+    // Count unique cards by card number (avoid double-counting duplicates)
+    sets[c.setId].owned.add(c.cardNumber || c.cardId || c.uid);
+    // Keep the highest known total
+    if (c.setTotal && (!sets[c.setId].total || c.setTotal > sets[c.setId].total)) sets[c.setId].total = c.setTotal;
+  }
+
+  const setList = Object.values(sets).sort((a, b) => b.owned.size - a.owned.size);
+
+  if (!setList.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const cardsHtml = setList.map(s => {
+    const owned = s.owned.size;
+    const total = s.total || '?';
+    const pct = s.total ? Math.min(100, Math.round((owned / s.total) * 100)) : 0;
+    const complete = s.total && owned >= s.total;
+    const clickable = s.total ? `onclick="openSetDetail('${esc(s.id)}')" role="button" tabindex="0" style="cursor:pointer"` : '';
+    const arrow = s.total ? `<i class="ti ti-chevron-right set-card-arrow" aria-hidden="true"></i>` : '';
+    return `<div class="set-card ${complete ? 'complete' : ''}" ${clickable}>
+      <div class="set-card-head">
+        <span class="set-name">${esc(s.name)}</span>
+        ${complete ? '<span class="set-complete-badge"><i class="ti ti-circle-check" aria-hidden="true"></i> Komplett!</span>' : arrow}
+      </div>
+      ${s.serie ? `<div class="set-serie">${esc(s.serie)}</div>` : ''}
+      <div class="set-bar-track"><div class="set-bar-fill" style="width:${pct}%"></div></div>
+      <div class="set-count">${owned} / ${total} Karten${s.total ? ` · ${pct}%` : ''}</div>
+      ${s.total && !complete ? `<div class="set-card-cta">Welche fehlen? Tippen →</div>` : ''}
+    </div>`;
+  }).join('');
+
+  wrap.querySelector('.set-progress-grid').innerHTML = cardsHtml;
+}
+
+// ═══════════════════════════════════════════════════════
+// SET DETAIL — show which cards you own vs. which are missing
+// ═══════════════════════════════════════════════════════
+async function openSetDetail(setId) {
+  // Which card numbers do we already own in this set?
+  const ownedNumbers = new Set();
+  let setName = setId, setSerie = '';
+  for (const c of collection) {
+    if (c.setId === setId) {
+      ownedNumbers.add(String(c.cardNumber || '').replace(/^0+/, ''));
+      setName = c.set || setId;
+      setSerie = c.serie || '';
+    }
+  }
+
+  // Open modal in loading state
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="set-detail-head">
+      <div class="set-detail-title">${esc(setName)}</div>
+      ${setSerie ? `<div class="set-detail-serie">${esc(setSerie)}</div>` : ''}
+    </div>
+    <div style="text-align:center;padding:40px 16px;color:#888">
+      <i class="ti ti-loader-2" style="font-size:32px;animation:spin 1s linear infinite;display:block;margin-bottom:10px;color:#1D9E75"></i>
+      Lade alle Karten des Sets…
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Fetch the full set card list from TCGdex
+  let allCards = [];
+  try {
+    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/sets/${setId}`, {}, 8000);
+    if (r.ok) {
+      const data = await r.json();
+      allCards = Array.isArray(data.cards) ? data.cards : [];
+    }
+  } catch (e) { /* handled below */ }
+
+  if (!allCards.length) {
+    modal.querySelector('div[style*="text-align:center"]').innerHTML =
+      '<i class="ti ti-alert-circle" style="font-size:28px;color:#A32D2D;display:block;margin-bottom:8px"></i>Konnte die Kartenliste nicht laden.';
+    return;
+  }
+
+  // Sort by card number (numeric where possible)
+  allCards.sort((a, b) => {
+    const an = parseInt(a.localId, 10), bn = parseInt(b.localId, 10);
+    if (!isNaN(an) && !isNaN(bn)) return an - bn;
+    return String(a.localId).localeCompare(String(b.localId));
+  });
+
+  const ownedCount = allCards.filter(c => ownedNumbers.has(String(c.localId).replace(/^0+/, ''))).length;
+  const missingCount = allCards.length - ownedCount;
+
+  // Build the grid: owned cards in colour, missing cards greyed with a "?"
+  const gridHtml = allCards.map(c => {
+    const num = String(c.localId).replace(/^0+/, '');
+    const have = ownedNumbers.has(num);
+    const imgUrl = c.image ? c.image + '/low.webp' : null;
+    if (have && imgUrl) {
+      return `<div class="setdetail-card have">
+        <img src="${esc(imgUrl)}" alt="${esc(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('noimg')">
+        <div class="setdetail-num">#${esc(c.localId)}</div>
+      </div>`;
+    }
+    // Missing card → silhouette with number
+    return `<div class="setdetail-card missing" title="${esc(c.name)} fehlt noch">
+      <div class="setdetail-missing-inner">
+        <i class="ti ti-help-circle" aria-hidden="true"></i>
+        <span>#${esc(c.localId)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="set-detail-head">
+      <div class="set-detail-title">${esc(setName)}</div>
+      ${setSerie ? `<div class="set-detail-serie">${esc(setSerie)}</div>` : ''}
+      <div class="set-detail-stats">
+        <span class="setstat have"><i class="ti ti-check" aria-hidden="true"></i> ${ownedCount} gesammelt</span>
+        <span class="setstat missing"><i class="ti ti-help-circle" aria-hidden="true"></i> ${missingCount} fehlen</span>
+      </div>
+    </div>
+    <div class="setdetail-legend">Tippe „Suchen" bei einer fehlenden Karte, um sie zu finden. Farbige Karten besitzt du bereits.</div>
+    <div class="setdetail-grid">${gridHtml}</div>
+    <button class="btn-close-modal" style="margin-top:14px" onclick="closeModalDirect()">Schließen</button>
+  `;
+}
+
+function renderCollection() {
+  renderSetProgress();
+  rebuildSetChips();
+  const grid = document.getElementById('collGrid');
+  const cards = filteredCards();
+
+  // Hide search + toolbar when there's nothing to filter
+  const hasCards = collection.length > 0;
+  const searchRow = document.querySelector('.coll-search-row');
+  const toolbar = document.querySelector('.coll-toolbar');
+  if (searchRow) searchRow.style.display = hasCards ? 'block' : 'none';
+  if (toolbar) toolbar.style.display = hasCards ? 'flex' : 'none';
+  if (!hasCards) {
+    const panel = document.getElementById('filterPanel');
+    if (panel) panel.setAttribute('hidden', '');
+  }
+
+  if (!cards.length) {
+    let emptyMsg;
+    if (collection.length === 0) {
+      emptyMsg = '<i class="ti ti-pokeball" aria-hidden="true"></i><p>Noch keine Karten in deiner Sammlung.<br><strong>Scanne deine erste Karte!</strong></p>';
+    } else if (collQuery || activeFilterCount() > 0) {
+      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten passen zu Suche/Filter.</p>';
+    } else {
+      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten in dieser Kategorie.</p>';
+    }
+    grid.innerHTML = `<div class="empty-state" role="listitem">${emptyMsg}</div>`;
+    return;
+  }
+
+  // Identify the single newest card across the whole collection (by addedAt)
+  const newestUid = collection.length
+    ? [...collection].sort((a, b) => (b.addedAt||0) - (a.addedAt||0))[0].uid
+    : null;
+
+  // Use stable card.uid to reference cards — never raw array index
+  grid.innerHTML = cards.map(c => {
+    const isNewest = c.uid === newestUid;
+    const img = c.image
+      ? `<img class="coll-thumb" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+    const priceHtml = c.price
+      ? `<div class="coll-price">${fmtPrice(c.price)}</div>`
+      : `<div class="coll-price no-price">Kein Preis</div>`;
+    const rel = c.releaseDate
+      ? `<div class="coll-release"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px" aria-hidden="true"></i> ${esc(c.releaseDate)}</div>`
+      : '';
+    const newBadge = isNewest ? `<span class="coll-badge-new">NEU</span>` : '';
+    return `<article class="coll-card ${isNewest ? 'newest' : ''}" onclick="openModal('${esc(c.uid)}')" role="listitem" aria-label="${esc(c.name)}, ${esc(c.set||'')}">
+      ${newBadge}
+      ${img}${ph}
+      <div class="coll-name">${esc(c.name)}</div>
+      <div class="coll-set">${esc(c.set || '—')}</div>
+      ${rel}${priceHtml}
+      <button class="coll-del" onclick="event.stopPropagation();removeCard('${esc(c.uid)}')" aria-label="${esc(c.name)} entfernen">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </article>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// DELETE WITH UNDO
+// ═══════════════════════════════════════════════════════
+function removeCard(uid) {
+  const idx = collection.findIndex(c => c.uid === uid);
+  if (idx === -1) return;
+  deletedCard = collection[idx];
+  deletedIndex = idx;
+  collection.splice(idx, 1);
+  save(); updateStats(); renderCollection();
+  showDeleteToast(`„${deletedCard.name}" entfernt`);
+}
+
+function undoDelete() {
+  if (!deletedCard) return;
+  if (toastTimer) clearTimeout(toastTimer);
+  collection.splice(deletedIndex, 0, deletedCard);
+  deletedCard = null; deletedIndex = -1;
+  save(); updateStats(); renderCollection();
+  document.getElementById('undoBar').classList.remove('show');
+  showToast('Wiederhergestellt!');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(uid) {
+  const c = collection.find(x => x.uid === uid);
+  if (!c) return;
+
+  const img = c.image
+    ? `<img class="modal-img" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const ph = `<div class="modal-img-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+  const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
+  const rel = c.releaseDate ? `<div class="modal-release"><i class="ti ti-calendar" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Erschienen: ${esc(c.releaseDate)}</div>` : '';
+  const num = c.cardNumber ? ` <span style="font-size:13px;color:#aaa;font-weight:400">#${esc(c.cardNumber)}</span>` : '';
+
+  let priceHtml = '<p style="font-size:13px;color:#aaa">Keine Cardmarket-Preisdaten verfügbar.</p>';
+  if (c.pricing?.cardmarket) {
+    const cm = c.pricing.cardmarket;
+    const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
+    const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+    priceHtml = `<div class="price-block">
+      <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+      <div class="price-grid">
+        ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+      </div>${upd}
+    </div>`;
+  }
+  if (c.pricing?.tcgplayer?.normal) {
+    const n = c.pricing.tcgplayer.normal;
+    const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '$' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
+    priceHtml += `<div class="price-block" style="margin-top:8px">
+      <div class="price-block-title"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:12px"></i> TCGplayer (USD)</div>
+      <div class="price-grid">${row('Market', n.marketPrice)}${row('Low', n.lowPrice)}</div>
+    </div>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Modal schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="modal-img-wrap">
+      ${img}${ph}
+      <div class="modal-card-info">
+        <div class="modal-name" id="modalCardName">${esc(c.name)}${num}</div>
+        <div class="modal-meta"><i class="ti ti-cards" aria-hidden="true" style="font-size:12px"></i> ${serieSet}</div>
+        ${rel}
+        ${c.rarity ? `<span class="rarity-pill">${esc(c.rarity)}</span>` : ''}
+      </div>
+    </div>
+    <div class="modal-section-title">Preise</div>
+    ${priceHtml}
+    <div class="modal-actions">
+      <button class="btn-change-edition" onclick="closeModalDirect();changeEdition('${esc(uid)}')">
+        <i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition? Andere wählen
+      </button>
+      <button class="btn-close-modal" onclick="closeModalDirect()">Schließen</button>
+    </div>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function changeEdition(uid) {
+  const c = collection.find(x => x.uid === uid);
+  if (!c) return;
+  editingCollId = uid;
+  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  document.getElementById('scanTrigger').style.display = 'none';
+  try {
+    const result = await searchAllCards(c.name, '');
+    hideProcessing();
+    showCardPicker(result);
+  } catch (e) {
+    hideProcessing();
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError('Suche fehlgeschlagen. Bitte versuche es erneut.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CAMERA + CAPTURE
+// ═══════════════════════════════════════════════════════
+async function startScan() {
+  if (scanInProgress) return;
+  editingCollId = null;
+  resetScanUI();
+  document.getElementById('videoWrap').style.display = 'block';
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+    });
+    document.getElementById('video').srcObject = mediaStream;
+  } catch (e) {
+    document.getElementById('videoWrap').style.display = 'none';
+    document.getElementById('scanTrigger').style.display = 'block';
+    const msg = e.name === 'NotAllowedError'
+      ? 'Kamerazugriff verweigert. Bitte in den Browser-Einstellungen erlauben.'
+      : 'Kamera nicht verfügbar — bitte manuell suchen.';
+    showError(msg);
+  }
+}
+
+function cancelScan() { stopCam(); resetScanUI(); }
+function stopCam() {
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+}
+
+function resetScanUI() {
+  stopCam();
+  scanInProgress = false;
+  document.getElementById('videoWrap').style.display = 'none';
+  document.getElementById('scanTrigger').style.display = 'block';
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('confirmStep').innerHTML = '';
+  document.getElementById('cardPicker').style.display = 'none';
+  document.getElementById('cardPicker').innerHTML = '';
+  document.getElementById('scanResult').style.display = 'none';
+  document.getElementById('scanResult').innerHTML = '';
+  hideProcessing();
+}
+
+function showProcessing(msg, sub) {
+  document.getElementById('processingText').textContent = msg || 'Bitte warten…';
+  document.getElementById('processingStep').textContent = sub || '';
+  document.getElementById('processingMsg').style.display = 'block';
+}
+function hideProcessing() { document.getElementById('processingMsg').style.display = 'none'; }
+
+async function captureFrame() {
+  if (scanInProgress) return;
+  scanInProgress = true;
+  const captureBtn = document.getElementById('captureBtn');
+  captureBtn.disabled = true;
+
+  // Haptic feedback (supported on most Android; iOS Safari ignores silently)
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('snap');
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+
+  // The guide frame is a fixed 5:7 card shape. Crop a centred 5:7 region from the
+  // video that's generous enough to include the whole card even if alignment isn't
+  // perfect. We fit the largest 5:7 rectangle that covers ~85% of the frame area.
+  const cardAspect = 5 / 7; // width / height
+  // Start from 86% of height, derive width from card aspect; clamp to video bounds.
+  let cropH = vh * 0.86;
+  let cropW = cropH * cardAspect;
+  if (cropW > vw * 0.92) { cropW = vw * 0.92; cropH = cropW / cardAspect; }
+  const sx = (vw - cropW) / 2;
+  const sy = (vh - cropH) / 2;
+
+  // Downscale so the longest edge is at most 1024px — Anthropic's recommended
+  // size for fast vision; also keeps the base64 payload small and avoids 400s.
+  const maxEdge = 1024;
+  const scale = Math.min(1, maxEdge / Math.max(cropW, cropH));
+  canvas.width = Math.round(cropW * scale);
+  canvas.height = Math.round(cropH * scale);
+  canvas.getContext('2d').drawImage(video, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
+  const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+  stopCam();
+  document.getElementById('videoWrap').style.display = 'none';
+
+  if (getKey()) {
+    showProcessing('Karte wird erkannt…', 'Claude analysiert das Bild');
+    try {
+      const info = await recognizeWithClaude(b64);
+      hideProcessing();
+
+      // CONFIDENT: Claude explicitly confident AND name + number both readable
+      if (info.confident && info.name && info.number) {
+        showProcessing('Suche Editionen…', info.name + ' · #' + info.number);
+        try {
+          const result = await searchAllCards(info.name, info.number);
+          hideProcessing();
+          if (result.cards.length === 1 && !result.remaining.length) {
+            // Unique match → straight to result
+            showResult(result.cards[0]);
+          } else {
+            // Multiple matches → picker, best match already sorted to top
+            showCardPicker(result);
+          }
+        } catch (e2) {
+          hideProcessing();
+          // Not in DB → fall back to confirm so user can fix
+          showConfirmStep({ ...info, _hint: 'Karte erkannt, aber nicht in der Datenbank. Name/Nummer ggf. korrigieren.' }, b64);
+        }
+
+      // UNCERTAIN: name only, no number → pre-fill confirm
+      } else if (info.name) {
+        showConfirmStep(info, b64);
+
+      // NOT RECOGNISED
+      } else {
+        showConfirmStep({ name: '', number: '', set: '', _error: 'Kein Pokemon erkannt. Bitte Name manuell eingeben.' }, b64);
+      }
+
+    } catch (e) {
+      hideProcessing();
+      // Show the actual error so problems are diagnosable (invalid key, bad request, etc.)
+      showConfirmStep({ name: '', number: '', set: '', _error: e.message || 'Erkennung fehlgeschlagen. Bitte Name manuell eingeben.' }, b64);
+    }
+  } else {
+    showConfirmStep({ name: '', number: '', set: '' }, b64);
+  }
+  scanInProgress = false;
+  captureBtn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// CLAUDE VISION
+// ═══════════════════════════════════════════════════════
+async function recognizeWithClaude(b64) {
+  if (!b64 || b64.length < 100) throw new Error('Leeres Bild — bitte erneut scannen');
+
+  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getKey().trim(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+          { type: 'text', text: `You are reading a Pokémon trading card photo. Look carefully at ALL printed text.
+
+Return ONLY valid JSON — no markdown, no explanation:
+{
+  "name": "exact Pokémon species name as printed on card top (e.g. 'Mewtu', 'Glurak', 'Pikachu ex'). Empty string if unsure.",
+  "number": "card number exactly as printed, usually bottom-left or bottom-right corner (e.g. '025/165' or '136/264'). Empty string if not clearly visible.",
+  "set": "set name printed at the very bottom of the card. Empty string if not visible.",
+  "language": "de if card text is German, en otherwise",
+  "confident": true or false — set true ONLY if you can clearly read both name AND number
+}
+
+Critical rules:
+- name must be ONLY the Pokémon species name at the top of the card — not move names, trainer names or item names
+- number format is digits/digits — look carefully at bottom corners
+- If the image is blurry, dark, or not a Pokémon card: set name and number to empty strings and confident to false
+- Return ONLY the JSON object` }
+        ]
+      }]
+    })
+  }, 15000);
+
+  // Read the body ONCE, then decide — works for both success and error
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    throw new Error(`API ${res.status} (keine lesbare Antwort)`);
+  }
+
+  if (!res.ok) {
+    // Surface a clear, user-friendly message based on the real Anthropic error
+    const detail = data?.error?.message || `Status ${res.status}`;
+    const lower = detail.toLowerCase();
+    if (res.status === 401) {
+      throw new Error('API-Key ungültig. Bitte unter console.anthropic.com prüfen.');
+    }
+    if (lower.includes('credit balance') || lower.includes('billing') || lower.includes('too low')) {
+      // Most common real-world case: account has no credit
+      throw new Error('CREDITS:Kein Guthaben auf dem Anthropic-Konto. Lade unter console.anthropic.com → Billing Guthaben auf, oder nutze einfach die manuelle Suche unten — die funktioniert kostenlos.');
+    }
+    if (res.status === 429) throw new Error('Zu viele Anfragen. Bitte kurz warten und erneut versuchen.');
+    if (res.status === 400) throw new Error('Anfrage abgelehnt: ' + detail);
+    throw new Error(`Fehler ${res.status}: ${detail}`);
+  }
+
+  if (data.error) throw new Error(data.error.message || 'API error');
+
+  const raw = (data.content || []).map(b => b.text || '').join('');
+  const parsed = safeJson(raw);
+  if (!parsed) throw new Error('Ungültige JSON-Antwort');
+  if (!parsed.name) throw new Error('Kein Pokémon erkannt');
+  return parsed;
+}
+
+// ═══════════════════════════════════════════════════════
+// CONFIRM STEP
+// ═══════════════════════════════════════════════════════
+function showConfirmStep(info, b64) {
+  const previewSrc = b64 ? 'data:image/jpeg;base64,' + b64 : '';
+  const imgTag = previewSrc
+    ? `<img src="${previewSrc}" style="width:60px;height:84px;border-radius:6px;object-fit:cover;border:0.5px solid #e0e0d8;flex-shrink:0" alt="Gescannte Karte">`
+    : '';
+
+  // Special handling: credit-balance message → friendly amber box, not scary red
+  const isCredits = info._error && info._error.startsWith('CREDITS:');
+  const creditsText = isCredits ? info._error.slice(8) : '';
+
+  // Red error banner (genuine API/recognition failure)
+  const errorHtml = (info._error && !isCredits)
+    ? `<div class="error-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>${esc(info._error)}</span></div>`
+    : '';
+
+  // Amber info banner: credit message OR "recognised but not in DB" hint
+  const creditsHtml = isCredits
+    ? `<div class="dup-warn"><i class="ti ti-wallet" aria-hidden="true"></i><span>${esc(creditsText)}</span></div>`
+    : '';
+  const hintHtml = info._hint && !info._error
+    ? `<div class="dup-warn"><i class="ti ti-info-circle" aria-hidden="true"></i><span>${esc(info._hint)}</span></div>`
+    : '';
+
+  // This step is always a fallback — either no API key, recognition failed, or uncertain result
+  const hintText = info.name
+    ? 'Name oder Nummer korrigieren falls nötig, dann suchen:'
+    : 'Pokémon-Name von der Karte eingeben (steht oben auf der Karte):';
+
+  document.getElementById('confirmStep').innerHTML = `<div class="confirm-wrap">
+    <h3><i class="ti ti-pencil" aria-hidden="true" style="font-size:15px"></i> Karte manuell eingeben</h3>
+    ${errorHtml}${creditsHtml}${hintHtml}
+    <p class="confirm-hint">${hintText}</p>
+    <div class="confirm-img-row">
+      ${imgTag}
+      <div class="confirm-fields">
+        <div>
+          <label class="field-label" for="confName">Pokémon-Name *</label>
+          <input type="text" id="confName" value="${esc(info.name || '')}" placeholder="z.B. Mewtu" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+        <div>
+          <label class="field-label" for="confNumber">Kartennummer (optional)</label>
+          <input type="text" id="confNumber" value="${esc(info.number || '')}" placeholder="z.B. 025/165" autocomplete="off" inputmode="numeric"/>
+        </div>
+      </div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn-confirm" id="confirmSearchBtn" onclick="searchFromConfirm()">
+        <i class="ti ti-search" aria-hidden="true"></i> Suchen
+      </button>
+      <button class="btn-secondary" onclick="cancelScan()">Abbrechen</button>
+    </div>
+  </div>`;
+  document.getElementById('confirmStep').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+
+  // Focus: empty name field → focus name; name pre-filled → focus number field
+  setTimeout(() => {
+    const nameInp = document.getElementById('confName');
+    const numInp = document.getElementById('confNumber');
+    if (nameInp && !nameInp.value) nameInp.focus();
+    else if (numInp && !numInp.value) numInp.focus();
+  }, 120);
+}
+
+async function searchFromConfirm() {
+  const name = document.getElementById('confName').value.trim();
+  const number = document.getElementById('confNumber').value.trim();
+  if (!name) {
+    document.getElementById('confName').focus();
+    document.getElementById('confName').style.borderColor = '#E24B4A';
+    setTimeout(() => { const el = document.getElementById('confName'); if (el) el.style.borderColor = ''; }, 1500);
+    return;
+  }
+  const btn = document.getElementById('confirmSearchBtn');
+  if (btn) { btn.disabled = true; }
+  document.getElementById('confirmStep').style.display = 'none';
+  document.getElementById('confirmStep').innerHTML = '';
+  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  try {
+    const result = await searchAllCards(name, number);
+    hideProcessing();
+    showCardPicker(result);
+  } catch (e) {
+    hideProcessing();
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Editionen für „${esc(name)}" gefunden. Anderen Namen versuchen?`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TCGDEX API
+// ═══════════════════════════════════════════════════════
+async function searchAllCards(name, numberHint) {
+  let cards = [];
+
+  // Try German first, then English — sequential to avoid rate-limit spikes
+  for (const lang of ['de', 'en']) {
+    try {
+      const r = await fetchWithTimeout(
+        `https://api.tcgdex.net/v2/${lang}/cards?name=${encodeURIComponent(name)}`,
+        {}, 8000
+      );
+      if (r.ok) {
+        const d = await r.json();
+        if (Array.isArray(d) && d.length) { cards = d; break; }
+      }
+    } catch (e) { /* timeout or network error, try next lang */ }
+  }
+
+  if (!cards.length) throw new Error('not found');
+
+  const wantNum = numberHint ? numberHint.split('/')[0].replace(/^0+/, '') : '';
+  const nameLower = name.trim().toLowerCase();
+
+  // Score every candidate so the most relevant cards survive the limit.
+  // This is what fixes common names like "Pikachu" with 100+ results.
+  const scored = cards.map(c => {
+    let score = 0;
+    const cName = (c.name || '').toLowerCase();
+    // Exact name match beats partial ("Pikachu" vs "Pikachu ex", "Surfing Pikachu")
+    if (cName === nameLower) score += 100;
+    else if (cName.startsWith(nameLower)) score += 40;
+    else if (cName.includes(nameLower)) score += 20;
+    // Card-number match is the strongest signal when we have it
+    if (wantNum && c.localId && c.localId.replace(/^0+/, '') === wantNum) score += 200;
+    return { card: c, score };
+  });
+
+  // If we have a number hint AND there are number matches, keep only those
+  // (plus exact-name fallbacks) — this is what disambiguates Pikachu reliably.
+  let candidates = scored;
+  if (wantNum) {
+    const numMatches = scored.filter(s => s.score >= 200);
+    if (numMatches.length) candidates = numMatches;
+  }
+
+  // Sort by score descending, take a larger slice so we don't miss the right edition
+  candidates.sort((a, b) => b.score - a.score);
+  const allCandidates = candidates.slice(0, 60).map(s => s.card);
+
+  // Lazy-load: only fetch details for the first page (12). The rest are kept as
+  // raw candidates and enriched on demand via "load more" — faster + fewer API calls.
+  const PAGE = 12;
+  const firstPage = allCandidates.slice(0, PAGE);
+  const remaining = allCandidates.slice(PAGE);
+
+  const results = await enrichCards(firstPage, name);
+  sortEnriched(results, nameLower);
+
+  // Return both the loaded cards and the not-yet-loaded raw candidates
+  return { cards: results, remaining, name, nameLower };
+}
+
+// Enrich a list of raw TCGdex card stubs with image + pricing (batched)
+async function enrichCards(stubs, name) {
+  const results = [];
+  for (let i = 0; i < stubs.length; i += 6) {
+    const batch = stubs.slice(i, i + 6);
+    const batchResults = await Promise.all(batch.map(c => fetchCardDetail(c, name)));
+    results.push(...batchResults.filter(Boolean));
+  }
+  return results;
+}
+
+// Order: exact-name matches first, then newest release
+function sortEnriched(results, nameLower) {
+  results.sort((a, b) => {
+    const aExact = (a.name || '').toLowerCase() === nameLower ? 1 : 0;
+    const bExact = (b.name || '').toLowerCase() === nameLower ? 1 : 0;
+    if (aExact !== bExact) return bExact - aExact;
+    return (b.releaseDate || '').localeCompare(a.releaseDate || '');
+  });
+  return results;
+}
+
+async function fetchCardDetail(c, fallbackName) {
+  try {
+    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/cards/${c.id}`, {}, 6000);
+    if (!r.ok) return null;
+    const d = await r.json();
+    return cardFromDetail(d, fallbackName);
+  } catch (e) { return null; }
+}
+
+function cardFromDetail(d, fallbackName) {
+  const pricing = d.pricing || null;
+  const cm = pricing?.cardmarket;
+  const price = cm ? (cm.trend ?? cm.avg ?? cm.avg7 ?? null) : null;
+  return {
+    id: d.id,
+    name: d.localName || d.name || fallbackName || '',
+    set: d.set?.name || '',
+    setId: d.set?.id || '',
+    setTotal: d.set?.cardCount?.official || d.set?.cardCount?.total || null,
+    serie: d.set?.serie?.name || '',
+    releaseDate: d.set?.releaseDate || '',
+    rarity: d.rarity || '',
+    image: d.image ? d.image + '/high.webp' : null,
+    cardNumber: d.localId || '',
+    price: price != null ? parseFloat(price) : null,
+    pricing
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// CARD PICKER
+// ═══════════════════════════════════════════════════════
+// Accepts either the new result object {cards, remaining, name} or a plain array
+function showCardPicker(result, nameArg) {
+  let cards, remaining, name;
+  if (Array.isArray(result)) {
+    cards = result; remaining = []; name = nameArg || '';
+  } else {
+    cards = result.cards || []; remaining = result.remaining || []; name = result.name || nameArg || '';
+  }
+  currentPickerCards = cards;
+  currentPickerName = name;
+  currentPickerRemaining = remaining;
+
+  if (!cards.length) {
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Treffer für „${esc(name)}". Anderen Namen versuchen?`);
+    return;
+  }
+
+  const totalKnown = cards.length + remaining.length;
+  const filterBox = totalKnown > 8
+    ? `<input type="search" id="pickerFilter" class="picker-filter" placeholder="Nach Set filtern, z.B. Base, Jungle…" oninput="filterPicker(this.value)" aria-label="Editionen nach Set filtern"/>`
+    : '';
+
+  const countText = remaining.length
+    ? `<strong>${cards.length}</strong> von ${totalKnown} Treffern für „${esc(name)}"`
+    : `<strong>${cards.length}</strong> Treffer für „${esc(name)}" — tippe auf die richtige Edition:`;
+
+  document.getElementById('cardPicker').innerHTML = `<div class="picker-wrap">
+    <h3><i class="ti ti-list-search" aria-hidden="true" style="font-size:15px"></i> Edition wählen</h3>
+    <p class="picker-sub">${countText}</p>
+    ${filterBox}
+    <div class="picker-grid" id="pickerGrid" role="list">${pickerItemsHtml(cards)}</div>
+    <p class="picker-empty-filter" id="pickerEmptyFilter" style="display:none">Kein Set passt zum Filter.</p>
+    <div id="loadMoreWrap" style="margin-top:10px">${loadMoreButtonHtml()}</div>
+    <div style="margin-top:8px">
+      <button class="btn-secondary" style="width:100%;padding:11px;text-align:center" onclick="cancelScan()">Abbrechen</button>
+    </div>
+  </div>`;
+  document.getElementById('cardPicker').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+// Render the picker item buttons for a set of cards, indexed by position
+function pickerItemsHtml(cards) {
+  return cards.map((c, i) => {
+    const img = c.image
+      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+    const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
+    const rarity = c.rarity ? `<span class="picker-rarity">${esc(c.rarity)}</span>` : '';
+    const num = c.cardNumber ? `<span class="picker-num">#${esc(c.cardNumber)}</span>` : '';
+    const rel = c.releaseDate ? `<span class="picker-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</span>` : '';
+    const priceEl = c.price != null
+      ? `<span class="picker-price">${fmtPrice(c.price)}</span>`
+      : `<span class="picker-no-price">kein Preis</span>`;
+    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : 'kein Preis'}">
+      ${img}${ph}
+      <div class="picker-info">
+        <div class="picker-name">${esc(c.name)}</div>
+        <div class="picker-set">${serieSet}</div>
+        <div class="picker-meta">${num}${rarity}${rel}</div>
+      </div>
+      ${priceEl}
+    </button>`;
+  }).join('');
+}
+
+function loadMoreButtonHtml() {
+  if (!currentPickerRemaining.length) return '';
+  const n = Math.min(12, currentPickerRemaining.length);
+  return `<button class="picker-loadmore" id="loadMoreBtn" onclick="loadMoreResults()">
+    <i class="ti ti-chevron-down" aria-hidden="true"></i> ${n} weitere laden
+  </button>`;
+}
+
+// Load the next page of results on demand
+async function loadMoreResults() {
+  const btn = document.getElementById('loadMoreBtn');
+  if (!btn || !currentPickerRemaining.length) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true" style="animation:spin 1s linear infinite"></i> Lädt…';
+
+  const PAGE = 12;
+  const nextStubs = currentPickerRemaining.slice(0, PAGE);
+  currentPickerRemaining = currentPickerRemaining.slice(PAGE);
+
+  const more = await enrichCards(nextStubs, currentPickerName);
+  // Append to existing, keep ordering stable (newly loaded go to the end)
+  const startIdx = currentPickerCards.length;
+  currentPickerCards = currentPickerCards.concat(more);
+
+  // Append new item buttons to the grid
+  const grid = document.getElementById('pickerGrid');
+  if (grid) {
+    grid.insertAdjacentHTML('beforeend', pickerItemsHtmlFrom(more, startIdx));
+  }
+  // Update count + load-more button
+  const sub = document.querySelector('.picker-sub');
+  if (sub) {
+    const total = currentPickerCards.length + currentPickerRemaining.length;
+    sub.innerHTML = currentPickerRemaining.length
+      ? `<strong>${currentPickerCards.length}</strong> von ${total} Treffern für „${esc(currentPickerName)}"`
+      : `<strong>${currentPickerCards.length}</strong> Treffer für „${esc(currentPickerName)}"`;
+  }
+  const wrap = document.getElementById('loadMoreWrap');
+  if (wrap) wrap.innerHTML = loadMoreButtonHtml();
+  // Re-apply any active set filter to the newly added items
+  const filterInput = document.getElementById('pickerFilter');
+  if (filterInput && filterInput.value) filterPicker(filterInput.value);
+}
+
+// Render items with an index offset (for appended pages)
+function pickerItemsHtmlFrom(cards, offset) {
+  return cards.map((c, j) => {
+    const i = offset + j;
+    const img = c.image
+      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+    const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
+    const rarity = c.rarity ? `<span class="picker-rarity">${esc(c.rarity)}</span>` : '';
+    const num = c.cardNumber ? `<span class="picker-num">#${esc(c.cardNumber)}</span>` : '';
+    const rel = c.releaseDate ? `<span class="picker-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</span>` : '';
+    const priceEl = c.price != null
+      ? `<span class="picker-price">${fmtPrice(c.price)}</span>`
+      : `<span class="picker-no-price">kein Preis</span>`;
+    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : 'kein Preis'}">
+      ${img}${ph}
+      <div class="picker-info">
+        <div class="picker-name">${esc(c.name)}</div>
+        <div class="picker-set">${serieSet}</div>
+        <div class="picker-meta">${num}${rarity}${rel}</div>
+      </div>
+      ${priceEl}
+    </button>`;
+  }).join('');
+}
+
+// Filter the visible picker items by set/serie name (client-side, instant)
+function filterPicker(query) {
+  const q = query.trim().toLowerCase();
+  let visible = 0;
+  currentPickerCards.forEach((c, i) => {
+    const el = document.getElementById('pi-' + i);
+    if (!el) return;
+    const hay = `${c.set || ''} ${c.serie || ''} ${c.cardNumber || ''}`.toLowerCase();
+    const show = !q || hay.includes(q);
+    el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const empty = document.getElementById('pickerEmptyFilter');
+  if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
+}
+
+async function selectPickerCard(i) {
+  const c = currentPickerCards[i];
+  if (!c) return;
+
+  // Visual feedback
+  document.querySelectorAll('.picker-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('pi-' + i);
+  if (el) el.classList.add('selected');
+
+  if (editingCollId) {
+    // Replace edition in existing collection card
+    const idx = collection.findIndex(x => x.uid === editingCollId);
+    if (idx !== -1) {
+      const existingUid = collection[idx].uid;
+      collection[idx] = {
+        ...c,
+        uid: existingUid,           // keep stable ID
+        addedAt: collection[idx].addedAt
+      };
+      save(); updateStats(); renderCollection();
+    }
+    resetScanUI();
+    editingCollId = null;
+    showToast('Edition aktualisiert!');
+  } else {
+    // New card — show result before adding
+    document.getElementById('cardPicker').style.display = 'none';
+    document.getElementById('cardPicker').innerHTML = '';
+    showResult(c);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RESULT CARD
+// ═══════════════════════════════════════════════════════
+function buildPriceBlock(pricing) {
+  if (!pricing?.cardmarket) {
+    return '<p style="font-size:13px;color:#aaa;margin:6px 0">Kein Preis auf Cardmarket gefunden.</p>';
+  }
+  const cm = pricing.cardmarket;
+  const row = (l, v) => `<div class="price-item">
+    <div class="price-item-label">${l}</div>
+    <div class="price-item-val ${v == null ? 'muted' : ''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div>
+  </div>`;
+  const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+  return `<div class="price-block">
+    <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+    <div class="price-grid">
+      ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}
+      ${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+    </div>${upd}
+  </div>`;
+}
+
+function showResult(card) {
+  pendingCard = card;
+
+  // Duplicate check
+  const dupIdx = collection.findIndex(c => c.cardId === card.id || (c.name === card.name && c.cardNumber === card.cardNumber && c.set === card.set));
+  const dupWarn = dupIdx !== -1
+    ? `<div class="dup-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>Diese Karte ist bereits in deiner Sammlung (${esc(collection[dupIdx].name)}, ${esc(collection[dupIdx].set)}).</span></div>`
+    : '';
+
+  const img = card.image
+    ? `<img class="card-img" src="${esc(card.image)}" alt="Kartenbild von ${esc(card.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const ph = `<div class="card-img-ph" style="${card.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
+  const priceDisplay = card.price != null
+    ? `<span class="price-summary-val">${fmtPrice(card.price)}</span>`
+    : `<span class="price-summary-na">Kein Preis</span>`;
+  const serieSet = card.serie ? `${esc(card.serie)} › ${esc(card.set)}` : esc(card.set || '—');
+  const rel = card.releaseDate
+    ? `<div class="result-release"><i class="ti ti-calendar" aria-hidden="true" style="font-size:11px"></i> ${esc(card.releaseDate)}</div>`
+    : '';
+  const num = card.cardNumber ? `<span class="result-num"> · #${esc(card.cardNumber)}</span>` : '';
+
+  document.getElementById('scanResult').innerHTML = `<div class="result-card">
+    ${dupWarn}
+    <div class="result-header">
+      ${img}${ph}
+      <div class="result-info">
+        <div class="result-name">${esc(card.name)}${num}</div>
+        <div class="result-set"><i class="ti ti-cards" aria-hidden="true" style="font-size:11px"></i> ${serieSet}</div>
+        ${rel}
+        ${card.rarity ? `<span class="rarity-pill">${esc(card.rarity)}</span>` : ''}
+      </div>
+    </div>
+    ${buildPriceBlock(card.pricing)}
+    <div class="price-summary">
+      <span style="font-size:12px;color:#888">Cardmarket Trend</span>
+      ${priceDisplay}
+    </div>
+    <div class="result-btns">
+      <button class="btn-add" onclick="addCard()"><i class="ti ti-plus" aria-hidden="true"></i> Zur Sammlung</button>
+      <button class="btn-wrong" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition</button>
+    </div>
+  </div>`;
+  document.getElementById('scanResult').style.display = 'block';
+  document.getElementById('scanTrigger').style.display = 'none';
+}
+
+function backToPicker() {
+  document.getElementById('scanResult').style.display = 'none';
+  document.getElementById('scanResult').innerHTML = '';
+  if (currentPickerCards.length) {
+    showCardPicker({ cards: currentPickerCards, remaining: currentPickerRemaining, name: currentPickerName });
+  } else {
+    resetScanUI();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ACHIEVEMENTS — collectible badges, fun for kids
+// ═══════════════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  { id: 'first',      icon: 'ti-cards',         title: 'Erste Karte',        desc: 'Die allererste Karte gescannt',           check: (st) => st.count >= 1 },
+  { id: 'ten',        icon: 'ti-stack',         title: 'Sammler',            desc: '10 Karten gesammelt',                     check: (st) => st.count >= 10 },
+  { id: 'fifty',      icon: 'ti-stack-2',       title: 'Profi-Sammler',      desc: '50 Karten gesammelt',                     check: (st) => st.count >= 50 },
+  { id: 'hundred',    icon: 'ti-stack-3',       title: 'Karten-Meister',     desc: '100 Karten gesammelt',                    check: (st) => st.count >= 100 },
+  { id: 'firstHolo',  icon: 'ti-sparkles',      title: 'Glänzend!',          desc: 'Eine Holo-Karte gefunden',                check: (st) => st.hasHolo },
+  { id: 'firstRare',  icon: 'ti-diamond',       title: 'Seltener Fund',      desc: 'Eine Rare-Karte gefunden',                check: (st) => st.hasRare },
+  { id: 'value10',    icon: 'ti-coin',          title: 'Wertvoll',           desc: 'Eine Karte über €10 besessen',            check: (st) => st.maxPrice >= 10 },
+  { id: 'value50',    icon: 'ti-diamond',       title: 'Schatzkammer',       desc: 'Eine Karte über €50 besessen',            check: (st) => st.maxPrice >= 50 },
+  { id: 'threeSets',  icon: 'ti-folders',       title: 'Vielfalt',           desc: 'Karten aus 3 verschiedenen Sets',         check: (st) => st.setCount >= 3 },
+  { id: 'setComplete',icon: 'ti-trophy',        title: 'Set komplett!',      desc: 'Ein ganzes Set vervollständigt',          check: (st) => st.hasCompleteSet },
+];
+
+function getUnlockedAchievements() {
+  try { return JSON.parse(localStorage.getItem('pokevault_achievements') || '[]'); }
+  catch (e) { return []; }
+}
+function saveUnlockedAchievements(list) {
+  localStorage.setItem('pokevault_achievements', JSON.stringify(list));
+}
+
+function computeStats() {
+  const setNumbers = {};   // setId -> Set of card numbers
+  const setTotals = {};
+  let hasHolo = false, hasRare = false, maxPrice = 0;
+  for (const c of collection) {
+    const r = (c.rarity || '').toLowerCase();
+    if (r.includes('holo')) hasHolo = true;
+    if (r.includes('rare')) hasRare = true;
+    if ((c.price || 0) > maxPrice) maxPrice = c.price || 0;
+    if (c.setId) {
+      if (!setNumbers[c.setId]) setNumbers[c.setId] = new Set();
+      setNumbers[c.setId].add(String(c.cardNumber || c.cardId || c.uid));
+      if (c.setTotal) setTotals[c.setId] = c.setTotal;
+    }
+  }
+  let hasCompleteSet = false;
+  for (const setId in setNumbers) {
+    if (setTotals[setId] && setNumbers[setId].size >= setTotals[setId]) hasCompleteSet = true;
+  }
+  return {
+    count: collection.length,
+    hasHolo, hasRare, maxPrice,
+    setCount: Object.keys(setNumbers).length,
+    hasCompleteSet
+  };
+}
+
+// Returns array of newly-unlocked achievement objects (and persists them)
+function checkAchievements() {
+  const st = computeStats();
+  const unlocked = getUnlockedAchievements();
+  const newly = [];
+  for (const a of ACHIEVEMENTS) {
+    if (!unlocked.includes(a.id) && a.check(st)) {
+      unlocked.push(a.id);
+      newly.push(a);
+    }
+  }
+  if (newly.length) {
+    saveUnlockedAchievements(unlocked);
+    renderAchievements();
+  }
+  return newly;
+}
+
+function celebrateAchievement(a) {
+  if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 60]);
+  fireConfetti();
+  const pop = document.getElementById('achievementPop');
+  pop.innerHTML = `
+    <div class="ach-pop-inner">
+      <div class="ach-pop-icon"><i class="ti ${esc(a.icon)}" aria-hidden="true"></i></div>
+      <div class="ach-pop-label">Erfolg freigeschaltet!</div>
+      <div class="ach-pop-title">${esc(a.title)}</div>
+      <div class="ach-pop-desc">${esc(a.desc)}</div>
+    </div>`;
+  pop.classList.add('show');
+  setTimeout(() => pop.classList.remove('show'), 3200);
+}
+
+function renderAchievements() {
+  const wrap = document.getElementById('achievementsSection');
+  const grid = document.getElementById('achievementsGrid');
+  if (!wrap || !grid) return;
+
+  const unlocked = getUnlockedAchievements();
+  const unlockedCount = ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
+
+  // Hide entirely until the first card is added
+  if (collection.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  document.getElementById('achievementsCount').textContent = `${unlockedCount} / ${ACHIEVEMENTS.length}`;
+
+  grid.innerHTML = ACHIEVEMENTS.map(a => {
+    const got = unlocked.includes(a.id);
+    return `<div class="ach-badge ${got ? 'unlocked' : 'locked'}" title="${esc(a.title)}: ${esc(a.desc)}">
+      <div class="ach-badge-icon"><i class="ti ${got ? esc(a.icon) : 'ti-lock'}" aria-hidden="true"></i></div>
+      <div class="ach-badge-title">${got ? esc(a.title) : '???'}</div>
+    </div>`;
+  }).join('');
+}
+
+// Lightweight confetti — no library, pure DOM
+function fireConfetti() {
+  const colors = ['#1D9E75', '#F0B429', '#E24B4A', '#5DE0B0', '#7F77DD'];
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = (Math.random() * 0.3) + 's';
+    piece.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+    container.appendChild(piece);
+  }
+  document.body.appendChild(container);
+  setTimeout(() => container.remove(), 2600);
+}
+
+function addCard() {
+  if (!pendingCard) return;
+  const wasEmpty = collection.length === 0;
+  collection.unshift({
+    uid: uid(),                              // stable ID
+    name: pendingCard.name,
+    set: pendingCard.set || '',
+    setId: pendingCard.setId || '',
+    setTotal: pendingCard.setTotal || null,
+    serie: pendingCard.serie || '',
+    releaseDate: pendingCard.releaseDate || '',
+    rarity: pendingCard.rarity || '',
+    price: pendingCard.price != null ? parseFloat(pendingCard.price) : 0,
+    image: pendingCard.image || null,
+    pricing: pendingCard.pricing || null,
+    cardId: pendingCard.id || '',
+    cardNumber: pendingCard.cardNumber || '',
+    addedAt: Date.now()
+  });
+  // Reset sort to newest so the just-added card is visible at the top
+  activeSort = 'newest';
+  const sortSel = document.getElementById('sortSelect');
+  if (sortSel) sortSel.value = 'newest';
+
+  save(); updateStats(); renderCollection();
+
+  if (navigator.vibrate) navigator.vibrate([20, 40, 20]); // little success buzz
+
+  // Check for newly unlocked achievements (shows its own celebration if any)
+  const newAchievements = checkAchievements();
+
+  // Milestone / celebratory messages — fun for kids
+  const count = collection.length;
+  let msg;
+  if (wasEmpty) msg = '🎉 Deine erste Karte!';
+  else if (count === 10) msg = '🏅 Schon 10 Karten!';
+  else if (count === 25) msg = '🌟 25 Karten — stark!';
+  else if (count === 50) msg = '🏆 50 Karten gesammelt!';
+  else if (count % 100 === 0) msg = `🎊 ${count} Karten!`;
+  else msg = '✓ Karte hinzugefügt!';
+
+  pendingCard = null;
+  resetScanUI();
+
+  // If an achievement unlocked, celebrate that instead of the generic toast
+  if (newAchievements.length) {
+    celebrateAchievement(newAchievements[0]);
+  } else {
+    showToast(msg);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// MANUAL SEARCH
+// ═══════════════════════════════════════════════════════
+async function manualSearch() {
+  const input = document.getElementById('manualInput');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const btn = document.getElementById('manualBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true" style="animation:spin 1s linear infinite"></i>';
+  editingCollId = null;
+  document.getElementById('scanTrigger').style.display = 'none';
+  try {
+    const result = await searchAllCards(name, '');
+    input.value = '';
+    showCardPicker(result);
+  } catch (e) {
+    document.getElementById('scanTrigger').style.display = 'block';
+    showError(`Keine Treffer für „${esc(name)}". Anderen Namen oder Schreibweise versuchen.`);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-search" aria-hidden="true"></i>';
+}
+
+// ═══════════════════════════════════════════════════════
+// iOS "Add to Home Screen" hint — shown once on iOS Safari
+// ═══════════════════════════════════════════════════════
+function maybeShowInstallHint() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('pokevault_installHintDismissed');
+  if (!isIOS || isStandalone || dismissed) return;
+
+  const bar = document.createElement('div');
+  bar.id = 'installHint';
+  bar.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="ti ti-device-mobile-share" style="font-size:22px;color:#1D9E75;flex-shrink:0"></i>
+      <div style="flex:1;font-size:13px;line-height:1.4;color:#1a1a18">
+        <strong>Als App installieren:</strong> Tippe auf <i class="ti ti-share" style="vertical-align:-2px"></i> und dann „Zum Home-Bildschirm".
+      </div>
+      <button onclick="dismissInstallHint()" style="background:none;border:none;color:#aaa;font-size:18px;cursor:pointer;padding:4px" aria-label="Schließen"><i class="ti ti-x"></i></button>
+    </div>`;
+  bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #ddd;padding:14px 16px calc(14px + env(safe-area-inset-bottom));z-index:9998;box-shadow:0 -2px 12px rgba(0,0,0,0.08);max-width:480px;margin:0 auto';
+  document.body.appendChild(bar);
+}
+function dismissInstallHint() {
+  localStorage.setItem('pokevault_installHintDismissed', '1');
+  const el = document.getElementById('installHint');
+  if (el) el.remove();
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+if (getKey()) document.getElementById('apiSection').style.display = 'none';
+updateStats();
+renderCollection();
+updateBackupNote();
+updateFilterBadge();
+// Back-fill achievements for existing collections (silent — no popup on load)
+checkAchievements();
+renderAchievements();
+setTimeout(maybeShowInstallHint, 1500);
+</script>
+</body>
+</html>
