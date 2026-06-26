@@ -23,6 +23,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .pokeball{width:36px;height:36px;border-radius:50%;border:2px solid #9FE1CB;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .topbar-title{font-size:20px;font-weight:600}
 .topbar-sub{font-size:11px;color:#9FE1CB;margin-top:1px}
+.app-version{opacity:0.7;font-weight:600;letter-spacing:0.02em}
 .topbar-val .amount{font-size:22px;font-weight:600;text-align:right}
 .topbar-val .label{font-size:11px;color:#9FE1CB;text-align:right}
 
@@ -400,7 +401,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
       <div class="pokeball" aria-hidden="true"><i class="ti ti-pokeball"></i></div>
       <div>
         <div class="topbar-title">PokéVault</div>
-        <div class="topbar-sub">Deine Karten-Sammlung</div>
+        <div class="topbar-sub">Deine Karten-Sammlung <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
     <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
@@ -653,6 +654,9 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
+// Visible build marker — bump together with the HTML comment at the top of the
+// file on every deploy, so it's obvious on-device whether the new version loaded.
+const APP_VERSION = 'v10';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1078,11 +1082,89 @@ function renderSetProgress() {
   }).join('');
 
   wrap.querySelector('.set-progress-grid').innerHTML = cardsHtml;
+
+  // Warm the set-detail cache in the background so tapping a set shows no spinner.
+  // Deferred so it never delays the visible progress cards.
+  setTimeout(prefetchSetLists, 600);
 }
 
 // ═══════════════════════════════════════════════════════
 // SET DETAIL — show which cards you own vs. which are missing
 // ═══════════════════════════════════════════════════════
+// ── Set card-list cache ─────────────────────────────────
+// Full set lists rarely change, so cache them (memory + localStorage with TTL)
+// and prefetch in the background. Result: tapping a set usually shows NO spinner.
+const SET_CACHE_KEY = 'pokevault_setCache';
+const SET_CACHE_TTL = 7 * 86400000;        // 7 days
+let setCardsMem = {};                       // setId -> trimmed card array (this session)
+let setFetchInflight = {};                  // setId -> in-flight promise (dedup)
+
+function loadSetCacheStore() {
+  try { return JSON.parse(localStorage.getItem(SET_CACHE_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveSetCacheStore(store) {
+  try { localStorage.setItem(SET_CACHE_KEY, JSON.stringify(store)); }
+  catch (e) { /* cache is optional — ignore quota errors */ }
+}
+
+// Return cached cards for a set, or null if absent/expired
+function getCachedSet(setId) {
+  if (setCardsMem[setId]) return setCardsMem[setId];
+  const e = loadSetCacheStore()[setId];
+  if (e && Array.isArray(e.cards) && (Date.now() - e.ts) < SET_CACHE_TTL) {
+    setCardsMem[setId] = e.cards;
+    return e.cards;
+  }
+  return null;
+}
+
+// Fetch a set's card list (trimmed to what the detail view needs) — cached + deduped
+function fetchSetCards(setId) {
+  const cached = getCachedSet(setId);
+  if (cached) return Promise.resolve(cached);
+  if (setFetchInflight[setId]) return setFetchInflight[setId];
+
+  const p = (async () => {
+    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/sets/${setId}`, {}, 8000);
+    if (!r.ok) throw new Error('set fetch failed');
+    const data = await r.json();
+    const cards = (Array.isArray(data.cards) ? data.cards : [])
+      .map(c => ({ localId: c.localId, name: c.name, image: c.image || null }));
+    if (!cards.length) throw new Error('empty set');
+    setCardsMem[setId] = cards;
+    const store = loadSetCacheStore();
+    store[setId] = { ts: Date.now(), cards };
+    saveSetCacheStore(store);
+    return cards;
+  })();
+
+  setFetchInflight[setId] = p;
+  // Clear the in-flight marker once settled (success or failure)
+  p.then(() => {}, () => {}).then(() => { delete setFetchInflight[setId]; });
+  return p;
+}
+
+// Warm the cache in the background so set details open instantly.
+// Sequential + throttled so it never competes with foreground work. Re-entrant:
+// a later call (e.g. after a new set is added) picks up still-uncached sets.
+let prefetchWalking = false;
+function prefetchSetLists() {
+  if (prefetchWalking) return;
+  const ids = [...new Set(collection.filter(c => c.setId && c.setTotal).map(c => c.setId))]
+    .filter(id => !getCachedSet(id));
+  if (!ids.length) return;
+  prefetchWalking = true;
+  let i = 0;
+  const next = () => {
+    if (i >= ids.length) { prefetchWalking = false; return; }
+    const id = ids[i++];
+    if (getCachedSet(id)) { next(); return; }     // already cached → skip
+    fetchSetCards(id).catch(() => {}).then(() => setTimeout(next, 300));
+  };
+  next();
+}
+
 async function openSetDetail(setId) {
   // Which card numbers do we already own in this set?
   const ownedNumbers = new Set();
@@ -1095,8 +1177,18 @@ async function openSetDetail(setId) {
     }
   }
 
-  // Open modal in loading state
   const modal = document.getElementById('modalContent');
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Fast path: cache hit → render immediately, no spinner
+  const cached = getCachedSet(setId);
+  if (cached) {
+    renderSetDetailModal(modal, setName, setSerie, ownedNumbers, cached);
+    return;
+  }
+
+  // Slow path (cold cache): show a spinner while we fetch this one
   modal.innerHTML = `
     <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="set-detail-head">
@@ -1107,27 +1199,21 @@ async function openSetDetail(setId) {
       <i class="ti ti-loader-2" style="font-size:32px;animation:spin 1s linear infinite;display:block;margin-bottom:10px;color:#1D9E75"></i>
       Lade alle Karten des Sets…
     </div>`;
-  document.getElementById('modalBg').classList.add('open');
-  document.body.style.overflow = 'hidden';
 
-  // Fetch the full set card list from TCGdex
-  let allCards = [];
   try {
-    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/sets/${setId}`, {}, 8000);
-    if (r.ok) {
-      const data = await r.json();
-      allCards = Array.isArray(data.cards) ? data.cards : [];
-    }
-  } catch (e) { /* handled below */ }
-
-  if (!allCards.length) {
-    modal.querySelector('div[style*="text-align:center"]').innerHTML =
+    const allCards = await fetchSetCards(setId);
+    renderSetDetailModal(modal, setName, setSerie, ownedNumbers, allCards);
+  } catch (e) {
+    const box = modal.querySelector('div[style*="text-align:center"]');
+    if (box) box.innerHTML =
       '<i class="ti ti-alert-circle" style="font-size:28px;color:#A32D2D;display:block;margin-bottom:8px"></i>Konnte die Kartenliste nicht laden.';
-    return;
   }
+}
 
-  // Sort by card number (numeric where possible)
-  allCards.sort((a, b) => {
+// Render the set-detail grid (owned in colour, missing greyed) into the modal
+function renderSetDetailModal(modal, setName, setSerie, ownedNumbers, cards) {
+  // Sort by card number (numeric where possible) — copy first, never mutate the cache
+  const allCards = [...cards].sort((a, b) => {
     const an = parseInt(a.localId, 10), bn = parseInt(b.localId, 10);
     if (!isNaN(an) && !isNaN(bn)) return an - bn;
     return String(a.localId).localeCompare(String(b.localId));
@@ -1136,7 +1222,6 @@ async function openSetDetail(setId) {
   const ownedCount = allCards.filter(c => ownedNumbers.has(String(c.localId).replace(/^0+/, ''))).length;
   const missingCount = allCards.length - ownedCount;
 
-  // Build the grid: owned cards in colour, missing cards greyed with a "?"
   const gridHtml = allCards.map(c => {
     const num = String(c.localId).replace(/^0+/, '');
     const have = ownedNumbers.has(num);
@@ -1147,7 +1232,6 @@ async function openSetDetail(setId) {
         <div class="setdetail-num">#${esc(c.localId)}</div>
       </div>`;
     }
-    // Missing card → silhouette with number
     return `<div class="setdetail-card missing" title="${esc(c.name)} fehlt noch">
       <div class="setdetail-missing-inner">
         <i class="ti ti-help-circle" aria-hidden="true"></i>
@@ -2737,6 +2821,9 @@ function dismissInstallHint() {
 // INIT
 // ═══════════════════════════════════════════════════════
 if (getKey()) document.getElementById('apiSection').style.display = 'none';
+// Show the build version in the topbar
+const verEl = document.getElementById('appVersion');
+if (verEl) verEl.textContent = APP_VERSION;
 // Restore saved view mode button state
 ['grid', 'list', 'sets'].forEach(m => {
   const btn = document.getElementById('view' + m.charAt(0).toUpperCase() + m.slice(1));
