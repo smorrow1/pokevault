@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v9 — Sammlung: Ansicht-Umschalter (Kacheln/Liste/Sets) + Alphabet-Sprung -->
+<!-- PokéVault v10 — Erfolge: Fortschritt, Detail-Ansicht, „Nächster Erfolg", geheime Erfolge, einklappbar -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -329,18 +329,51 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 .backup-note.warn{color:#B45309;font-weight:500}
 /* Achievements */
 .achievements-section{padding:16px 14px 0}
-.achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.achievements-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .achievements-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.achievements-header-right{display:flex;align-items:center;gap:8px}
 .achievements-count{font-size:13px;color:#888;font-weight:600;background:#fff;border:0.5px solid #e0e0d8;border-radius:999px;padding:3px 10px}
+.achievements-chevron{font-size:18px;color:#bbb;transition:transform 0.2s}
+.achievements-section.collapsed .achievements-chevron{transform:rotate(-90deg)}
+.achievements-section.collapsed .achievements-grid,.achievements-section.collapsed .next-achievement{display:none !important}
 .achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ach-badge{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:10px 6px;text-align:center;transition:transform 0.1s}
+.ach-badge{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:10px 6px 8px;text-align:center;transition:transform 0.1s;cursor:pointer;font-family:inherit;width:100%;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center}
+.ach-badge:active{transform:scale(0.95)}
 .ach-badge.unlocked{border-color:#F0B429;background:linear-gradient(180deg,#FFFBF0,#fff)}
-.ach-badge.locked{opacity:0.55}
+.ach-badge.locked{opacity:0.7}
 .ach-badge-icon{font-size:24px;margin-bottom:4px}
 .ach-badge.unlocked .ach-badge-icon{color:#F0B429}
-.ach-badge.locked .ach-badge-icon{color:#ccc}
-.ach-badge-title{font-size:10px;font-weight:600;color:#555;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ach-badge.locked .ach-badge-title{color:#bbb}
+.ach-badge.locked .ach-badge-icon{color:#bbb}
+.ach-badge.secret .ach-badge-icon{color:#ccc}
+.ach-badge-title{font-size:10px;font-weight:600;color:#555;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ach-badge.locked .ach-badge-title{color:#999}
+/* Mini progress bar inside a locked badge */
+.ach-bar-track{height:5px;background:#eee;border-radius:999px;overflow:hidden;width:100%;margin-top:6px}
+.ach-bar-fill{height:100%;background:linear-gradient(90deg,#1D9E75,#5DE0B0);border-radius:999px;transition:width 0.4s ease}
+.ach-bar-track.big{height:9px;margin-top:12px}
+.ach-badge-prog{font-size:9px;color:#0F6E56;font-weight:600;margin-top:3px}
+/* "Nächster Erfolg" nudge */
+.next-achievement{margin-bottom:12px}
+.next-ach{display:flex;align-items:center;gap:12px;width:100%;background:linear-gradient(180deg,#F0FAF6,#fff);border:0.5px solid #9FE1CB;border-radius:12px;padding:12px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent}
+.next-ach:active{transform:scale(0.99)}
+.next-ach-icon{font-size:26px;color:#1D9E75;flex-shrink:0;width:42px;height:42px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center}
+.next-ach-body{flex:1;min-width:0}
+.next-ach-label{font-size:10px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1px}
+.next-ach-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.next-ach-rem{color:#0F6E56;font-weight:700}
+.next-ach-prog{font-size:13px;font-weight:700;color:#0F6E56;flex-shrink:0}
+/* Achievement detail modal */
+.ach-detail{text-align:center;padding:8px 4px 0}
+.ach-detail-icon{font-size:52px;width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.ach-detail-icon.unlocked{color:#F0B429;background:linear-gradient(180deg,#FFFBF0,#FDF3D6);border:2px solid #F0B429}
+.ach-detail-icon.locked{color:#bbb;background:#f4f4f2;border:2px solid #e0e0d8}
+.ach-detail-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.ach-detail-desc{font-size:14px;color:#666;line-height:1.5;margin-bottom:4px}
+.ach-detail-status{font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:8px}
+.ach-detail-status.done{color:#0F6E56}
+.ach-detail-date{font-size:12px;color:#aaa;margin-top:6px}
+.ach-detail-prog{font-size:13px;font-weight:700;color:#0F6E56;margin-top:8px}
+.ach-detail-rem{font-size:13px;color:#7A4800;font-weight:600;margin-top:8px}
 /* Achievement unlock popup */
 #achievementPop{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;z-index:10000;pointer-events:none;padding:20px}
 #achievementPop.show{display:flex;animation:achFade 0.3s ease}
@@ -397,10 +430,14 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 
   <!-- Achievements — collectible badges -->
   <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
-    <div class="achievements-header">
+    <div class="achievements-header" onclick="toggleAchievements()" role="button" tabindex="0" aria-label="Erfolge ein-/ausklappen" onkeydown="if(event.key==='Enter'||event.key===' ')toggleAchievements()">
       <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
-      <span class="achievements-count" id="achievementsCount">0 / 0</span>
+      <div class="achievements-header-right">
+        <span class="achievements-count" id="achievementsCount">0 / 0</span>
+        <i class="ti ti-chevron-down achievements-chevron" aria-hidden="true"></i>
+      </div>
     </div>
+    <div class="next-achievement" id="nextAchievement" style="display:none"></div>
     <div class="achievements-grid" id="achievementsGrid"></div>
   </section>
 
@@ -2297,18 +2334,45 @@ function backToPicker() {
 // ═══════════════════════════════════════════════════════
 // ACHIEVEMENTS — collectible badges, fun for kids
 // ═══════════════════════════════════════════════════════
+// Each achievement defines progress(st) -> {cur, target}. Unlocked once cur >= target.
+// `unit` controls how cur/target is displayed ('count' integers, 'eur' money).
+// `secret: true` hides the achievement (title/desc/progress) until it is unlocked.
 const ACHIEVEMENTS = [
-  { id: 'first',      icon: 'ti-cards',         title: 'Erste Karte',        desc: 'Die allererste Karte gescannt',           check: (st) => st.count >= 1 },
-  { id: 'ten',        icon: 'ti-stack',         title: 'Sammler',            desc: '10 Karten gesammelt',                     check: (st) => st.count >= 10 },
-  { id: 'fifty',      icon: 'ti-stack-2',       title: 'Profi-Sammler',      desc: '50 Karten gesammelt',                     check: (st) => st.count >= 50 },
-  { id: 'hundred',    icon: 'ti-stack-3',       title: 'Karten-Meister',     desc: '100 Karten gesammelt',                    check: (st) => st.count >= 100 },
-  { id: 'firstHolo',  icon: 'ti-sparkles',      title: 'Glänzend!',          desc: 'Eine Holo-Karte gefunden',                check: (st) => st.hasHolo },
-  { id: 'firstRare',  icon: 'ti-diamond',       title: 'Seltener Fund',      desc: 'Eine Rare-Karte gefunden',                check: (st) => st.hasRare },
-  { id: 'value10',    icon: 'ti-coin',          title: 'Wertvoll',           desc: 'Eine Karte über €10 besessen',            check: (st) => st.maxPrice >= 10 },
-  { id: 'value50',    icon: 'ti-diamond',       title: 'Schatzkammer',       desc: 'Eine Karte über €50 besessen',            check: (st) => st.maxPrice >= 50 },
-  { id: 'threeSets',  icon: 'ti-folders',       title: 'Vielfalt',           desc: 'Karten aus 3 verschiedenen Sets',         check: (st) => st.setCount >= 3 },
-  { id: 'setComplete',icon: 'ti-trophy',        title: 'Set komplett!',      desc: 'Ein ganzes Set vervollständigt',          check: (st) => st.hasCompleteSet },
+  { id: 'first',       icon: 'ti-cards',     title: 'Erste Karte',    desc: 'Die allererste Karte gescannt',                 unit: 'count', progress: (st) => ({ cur: Math.min(st.count, 1),        target: 1 }) },
+  { id: 'ten',         icon: 'ti-stack',     title: 'Sammler',        desc: '10 Karten gesammelt',                           unit: 'count', progress: (st) => ({ cur: Math.min(st.count, 10),       target: 10 }) },
+  { id: 'fifty',       icon: 'ti-stack-2',   title: 'Profi-Sammler',  desc: '50 Karten gesammelt',                           unit: 'count', progress: (st) => ({ cur: Math.min(st.count, 50),       target: 50 }) },
+  { id: 'hundred',     icon: 'ti-stack-3',   title: 'Karten-Meister', desc: '100 Karten gesammelt',                          unit: 'count', progress: (st) => ({ cur: Math.min(st.count, 100),      target: 100 }) },
+  { id: 'firstHolo',   icon: 'ti-sparkles',  title: 'Glänzend!',      desc: 'Eine Holo-Karte gefunden',                      unit: 'count', progress: (st) => ({ cur: st.hasHolo ? 1 : 0,           target: 1 }) },
+  { id: 'firstRare',   icon: 'ti-diamond',   title: 'Seltener Fund',  desc: 'Eine Rare-Karte gefunden',                      unit: 'count', progress: (st) => ({ cur: st.hasRare ? 1 : 0,           target: 1 }) },
+  { id: 'value10',     icon: 'ti-coin',      title: 'Wertvoll',       desc: 'Eine Karte über €10 besessen',                  unit: 'eur',   progress: (st) => ({ cur: Math.min(st.maxPrice, 10),    target: 10 }) },
+  { id: 'value50',     icon: 'ti-diamond',   title: 'Schatzkammer',   desc: 'Eine Karte über €50 besessen',                  unit: 'eur',   progress: (st) => ({ cur: Math.min(st.maxPrice, 50),    target: 50 }) },
+  { id: 'value100',    icon: 'ti-diamonds',  title: 'Juwel',          desc: 'Eine Karte über €100 besessen',                 unit: 'eur',   progress: (st) => ({ cur: Math.min(st.maxPrice, 100),   target: 100 }) },
+  { id: 'totalValue100', icon: 'ti-pig-money', title: 'Schatzmeister', desc: 'Sammlung über €100 wert',                     unit: 'eur',   progress: (st) => ({ cur: Math.min(st.totalValue, 100), target: 100 }) },
+  { id: 'threeSets',   icon: 'ti-folders',   title: 'Vielfalt',       desc: 'Karten aus 3 verschiedenen Sets',               unit: 'count', progress: (st) => ({ cur: Math.min(st.setCount, 3),     target: 3 }) },
+  { id: 'fiveSets',    icon: 'ti-map-2',     title: 'Entdecker',      desc: 'Karten aus 5 verschiedenen Sets',               unit: 'count', progress: (st) => ({ cur: Math.min(st.setCount, 5),     target: 5 }) },
+  { id: 'rainbow',     icon: 'ti-palette',   title: 'Regenbogen',     desc: 'Karten aus 5 verschiedenen Seltenheiten',       unit: 'count', progress: (st) => ({ cur: Math.min(st.rarityKinds, 5),  target: 5 }) },
+  { id: 'vintage',     icon: 'ti-history',   title: 'Zeitreise',      desc: 'Eine Karte aus einem Set von vor 2010',         unit: 'count', progress: (st) => ({ cur: (st.oldestYear && st.oldestYear < 2010) ? 1 : 0, target: 1 }) },
+  { id: 'setComplete', icon: 'ti-trophy',    title: 'Set komplett!',  desc: 'Ein ganzes Set vervollständigt',                unit: 'count', progress: (st) => ({ cur: st.bestSet.owned,             target: Math.max(1, st.bestSet.total) }) },
+  // ── Versteckte Erfolge (Überraschung — bleiben „???" bis erreicht) ──
+  { id: 'nightOwl',    icon: 'ti-moon',      title: 'Nachteule',      desc: 'Eine Karte mitten in der Nacht hinzugefügt (0–5 Uhr)', secret: true, unit: 'count', progress: (st) => ({ cur: st.addedAtNight ? 1 : 0, target: 1 }) },
+  { id: 'hoarder',     icon: 'ti-bolt',      title: 'Sammelwut',      desc: '5 Karten an einem einzigen Tag hinzugefügt',    secret: true, unit: 'count', progress: (st) => ({ cur: Math.min(st.maxPerDay, 5),    target: 5 }) },
+  { id: 'twins',       icon: 'ti-copy',      title: 'Doppelgänger',   desc: 'Dieselbe Karte zweimal in der Sammlung',        secret: true, unit: 'count', progress: (st) => ({ cur: st.hasDuplicate ? 1 : 0,     target: 1 }) },
 ];
+
+// Resolve an achievement's progress + derived flags against current stats
+function achState(a, st, unlockedIds) {
+  const p = a.progress(st);
+  const target = p.target || 1;
+  const cur = Math.min(p.cur, target);
+  const unlocked = unlockedIds.includes(a.id);
+  return { cur, target, pct: Math.min(100, Math.round((cur / target) * 100)), unlocked, hasBar: target > 1 };
+}
+
+// Format a cur/target pair for display (money vs plain count)
+function fmtProgress(cur, target, unit) {
+  if (unit === 'eur') return `${fmtPrice(cur)} / ${fmtPrice(target)}`;
+  return `${Math.floor(cur)} / ${Math.floor(target)}`;
+}
 
 function getUnlockedAchievements() {
   try { return JSON.parse(localStorage.getItem('pokevault_achievements') || '[]'); }
@@ -2317,47 +2381,96 @@ function getUnlockedAchievements() {
 function saveUnlockedAchievements(list) {
   localStorage.setItem('pokevault_achievements', JSON.stringify(list));
 }
+// Unlock timestamps {id: ts} — additive, lets the detail view show "Freigeschaltet am …"
+function getAchievementTimes() {
+  try { return JSON.parse(localStorage.getItem('pokevault_achievementTimes') || '{}'); }
+  catch (e) { return {}; }
+}
+function saveAchievementTimes(map) {
+  localStorage.setItem('pokevault_achievementTimes', JSON.stringify(map));
+}
 
 function computeStats() {
   const setNumbers = {};   // setId -> Set of card numbers
   const setTotals = {};
-  let hasHolo = false, hasRare = false, maxPrice = 0;
+  const rarities = new Set();
+  const perDay = {};       // 'YYYY-MM-DD' -> count
+  const seenCards = new Set();
+  let hasHolo = false, hasRare = false, maxPrice = 0, totalValue = 0;
+  let oldestYear = null, addedAtNight = false, hasDuplicate = false;
+
   for (const c of collection) {
     const r = (c.rarity || '').toLowerCase();
     if (r.includes('holo')) hasHolo = true;
     if (r.includes('rare')) hasRare = true;
+    if (r) rarities.add(r);
     if ((c.price || 0) > maxPrice) maxPrice = c.price || 0;
+    totalValue += c.price || 0;
+
+    // Oldest release year
+    const yr = c.releaseDate ? parseInt(String(c.releaseDate).slice(0, 4), 10) : NaN;
+    if (!isNaN(yr) && (oldestYear === null || yr < oldestYear)) oldestYear = yr;
+
+    // Time-based (hidden) signals from addedAt
+    if (c.addedAt) {
+      const d = new Date(c.addedAt);
+      if (d.getHours() >= 0 && d.getHours() < 5) addedAtNight = true;
+      const day = d.toISOString().slice(0, 10);
+      perDay[day] = (perDay[day] || 0) + 1;
+    }
+
+    // Duplicate detection (same card identity appears twice)
+    const ident = c.cardId || `${c.name}|${c.cardNumber}|${c.set}`;
+    if (seenCards.has(ident)) hasDuplicate = true; else seenCards.add(ident);
+
     if (c.setId) {
       if (!setNumbers[c.setId]) setNumbers[c.setId] = new Set();
       setNumbers[c.setId].add(String(c.cardNumber || c.cardId || c.uid));
       if (c.setTotal) setTotals[c.setId] = c.setTotal;
     }
   }
-  let hasCompleteSet = false;
+
+  // Best (closest-to-complete) set, among sets with a known total
+  let bestSet = { owned: 0, total: 0 };
+  let bestRatio = -1;
   for (const setId in setNumbers) {
-    if (setTotals[setId] && setNumbers[setId].size >= setTotals[setId]) hasCompleteSet = true;
+    const total = setTotals[setId];
+    if (!total) continue;
+    const owned = setNumbers[setId].size;
+    const ratio = owned / total;
+    if (ratio > bestRatio) { bestRatio = ratio; bestSet = { owned, total }; }
   }
+
+  const maxPerDay = Object.values(perDay).reduce((m, n) => Math.max(m, n), 0);
+
   return {
     count: collection.length,
-    hasHolo, hasRare, maxPrice,
+    hasHolo, hasRare, maxPrice, totalValue,
     setCount: Object.keys(setNumbers).length,
-    hasCompleteSet
+    rarityKinds: rarities.size,
+    oldestYear, addedAtNight, hasDuplicate, maxPerDay,
+    bestSet
   };
 }
 
-// Returns array of newly-unlocked achievement objects (and persists them)
+// Returns array of newly-unlocked achievement objects (and persists them + timestamps)
 function checkAchievements() {
   const st = computeStats();
   const unlocked = getUnlockedAchievements();
+  const times = getAchievementTimes();
   const newly = [];
   for (const a of ACHIEVEMENTS) {
-    if (!unlocked.includes(a.id) && a.check(st)) {
+    if (unlocked.includes(a.id)) continue;
+    const p = a.progress(st);
+    if (p.cur >= (p.target || 1)) {
       unlocked.push(a.id);
+      times[a.id] = Date.now();
       newly.push(a);
     }
   }
   if (newly.length) {
     saveUnlockedAchievements(unlocked);
+    saveAchievementTimes(times);
     renderAchievements();
   }
   return newly;
@@ -2384,21 +2497,118 @@ function renderAchievements() {
   if (!wrap || !grid) return;
 
   const unlocked = getUnlockedAchievements();
+  const st = computeStats();
   const unlockedCount = ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
 
   // Hide entirely until the first card is added
   if (collection.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
+  // Restore collapsed state (folded away, header stays visible)
+  wrap.classList.toggle('collapsed', localStorage.getItem('pokevault_achievementsCollapsed') === '1');
+
   document.getElementById('achievementsCount').textContent = `${unlockedCount} / ${ACHIEVEMENTS.length}`;
 
+  // ── "Nächster Erfolg" nudge: the locked, non-secret, measurable achievement
+  //    that is closest to completion. Secret ones are excluded (no spoilers).
+  renderNextAchievement(st, unlocked);
+
   grid.innerHTML = ACHIEVEMENTS.map(a => {
-    const got = unlocked.includes(a.id);
-    return `<div class="ach-badge ${got ? 'unlocked' : 'locked'}" title="${esc(a.title)}: ${esc(a.desc)}">
-      <div class="ach-badge-icon"><i class="ti ${got ? esc(a.icon) : 'ti-lock'}" aria-hidden="true"></i></div>
-      <div class="ach-badge-title">${got ? esc(a.title) : '???'}</div>
-    </div>`;
+    const s = achState(a, st, unlocked);
+    const isSecret = a.secret && !s.unlocked;
+    const icon = s.unlocked ? esc(a.icon) : (isSecret ? 'ti-lock' : esc(a.icon));
+    const titleText = isSecret ? '???' : esc(a.title);
+    // Mini progress bar only for measurable, still-locked, non-secret achievements
+    const bar = (!s.unlocked && !isSecret && s.hasBar)
+      ? `<div class="ach-bar-track"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
+         <div class="ach-badge-prog">${esc(fmtProgress(s.cur, s.target, a.unit))}</div>`
+      : '';
+    return `<button class="ach-badge ${s.unlocked ? 'unlocked' : 'locked'}${isSecret ? ' secret' : ''}" onclick="openAchievementDetail('${esc(a.id)}')" aria-label="${titleText}">
+      <div class="ach-badge-icon"><i class="ti ${icon}" aria-hidden="true"></i></div>
+      <div class="ach-badge-title">${titleText}</div>
+      ${bar}
+    </button>`;
   }).join('');
+}
+
+// Show the closest-to-unlock achievement as a motivating banner
+function renderNextAchievement(st, unlocked) {
+  const slot = document.getElementById('nextAchievement');
+  if (!slot) return;
+  let best = null, bestRatio = -1;
+  for (const a of ACHIEVEMENTS) {
+    if (a.secret) continue;
+    const s = achState(a, st, unlocked);
+    if (s.unlocked || !s.hasBar) continue;           // need measurable, still-locked
+    const ratio = s.cur / s.target;
+    if (ratio > bestRatio) { bestRatio = ratio; best = { a, s }; }
+  }
+  if (!best) { slot.style.display = 'none'; slot.innerHTML = ''; return; }
+  const { a, s } = best;
+  const remaining = a.unit === 'eur'
+    ? `Noch ${fmtPrice(s.target - s.cur)}`
+    : `Noch ${Math.ceil(s.target - s.cur)}`;
+  slot.style.display = 'block';
+  slot.innerHTML = `<button class="next-ach" onclick="openAchievementDetail('${esc(a.id)}')" aria-label="Nächster Erfolg: ${esc(a.title)}">
+    <div class="next-ach-icon"><i class="ti ${esc(a.icon)}" aria-hidden="true"></i></div>
+    <div class="next-ach-body">
+      <div class="next-ach-label">Nächster Erfolg</div>
+      <div class="next-ach-title">${esc(a.title)} · <span class="next-ach-rem">${remaining}</span></div>
+      <div class="ach-bar-track"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
+    </div>
+    <div class="next-ach-prog">${esc(fmtProgress(s.cur, s.target, a.unit))}</div>
+  </button>`;
+}
+
+// Tap a badge → detail modal (reuses the card modal shell)
+function openAchievementDetail(id) {
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  const st = computeStats();
+  const unlocked = getUnlockedAchievements();
+  const s = achState(a, st, unlocked);
+  const isSecret = a.secret && !s.unlocked;
+
+  const iconCls = s.unlocked ? 'unlocked' : 'locked';
+  const icon = isSecret ? 'ti-lock' : esc(a.icon);
+  const title = isSecret ? 'Versteckter Erfolg' : esc(a.title);
+
+  let body;
+  if (s.unlocked) {
+    const ts = getAchievementTimes()[a.id];
+    const when = ts ? `<div class="ach-detail-date">Freigeschaltet am ${fmtDate(ts)}</div>` : '';
+    body = `<div class="ach-detail-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> Freigeschaltet</div>
+      <p class="ach-detail-desc">${esc(a.desc)}</p>${when}`;
+  } else if (isSecret) {
+    body = `<p class="ach-detail-desc">Ein versteckter Erfolg — finde selbst heraus, wie du ihn freischaltest! 🔍</p>`;
+  } else {
+    const remaining = a.unit === 'eur' ? fmtPrice(s.target - s.cur) : Math.ceil(s.target - s.cur);
+    const remLabel = s.hasBar ? `<div class="ach-detail-rem">Noch ${esc(String(remaining))} bis zum Erfolg!</div>` : '';
+    const barBlock = s.hasBar
+      ? `<div class="ach-bar-track big"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
+         <div class="ach-detail-prog">${esc(fmtProgress(s.cur, s.target, a.unit))} · ${s.pct}%</div>`
+      : '';
+    body = `<p class="ach-detail-desc">${esc(a.desc)}</p>${barBlock}${remLabel}`;
+  }
+
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="ach-detail">
+      <div class="ach-detail-icon ${iconCls}"><i class="ti ${icon}" aria-hidden="true"></i></div>
+      <div class="ach-detail-title">${title}</div>
+      ${body}
+    </div>
+    <button class="btn-close-modal" style="margin-top:16px" onclick="closeModalDirect()">Schließen</button>`;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// Fold the achievements section away (state remembered)
+function toggleAchievements() {
+  const wrap = document.getElementById('achievementsSection');
+  if (!wrap) return;
+  const collapsed = wrap.classList.toggle('collapsed');
+  localStorage.setItem('pokevault_achievementsCollapsed', collapsed ? '1' : '0');
 }
 
 // Lightweight confetti — no library, pure DOM
