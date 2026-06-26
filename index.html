@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v13 — Scan als Vollbild-Overlay: Auslöser immer sichtbar, kein Scrollen nötig -->
+<!-- PokéVault v14 — Auto-Auslöser bei stabiler Schärfe (Dwell ~1,5s, Countdown) + Auto-Schalter -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -65,6 +65,12 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 /* Sharpness / stability status pill */
 .cam-status{position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:7;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;display:flex;align-items:center;gap:6px;pointer-events:none;transition:background 0.3s,color 0.3s;white-space:nowrap}
 .cam-status.good{background:rgba(29,158,117,0.92);color:#fff}
+/* Auto-capture toggle pill (top-left, tappable) */
+.cam-auto-toggle{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;z-index:8;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:999px;display:flex;align-items:center;gap:5px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.cam-auto-toggle i{font-size:14px}
+.cam-auto-toggle.on{background:rgba(29,158,117,0.92);border-color:transparent}
+.cam-auto-toggle.off{opacity:0.7}
+.cam-auto-toggle.off i{opacity:0.6}
 .cam-status.blurry{background:rgba(240,180,41,0.92);color:#1a1a18}
 .cam-status i{font-size:14px}
 /* Tap-to-focus ring */
@@ -538,6 +544,10 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
         </div>
         <!-- Focus ring shown on tap-to-focus -->
         <div class="cam-focus-ring" id="camFocusRing" aria-hidden="true"></div>
+        <!-- Auto-capture toggle -->
+        <button class="cam-auto-toggle" id="camAutoToggle" onclick="toggleAutoCapture(event)" aria-pressed="true" aria-label="Automatischen Auslöser umschalten">
+          <i class="ti ti-bolt" aria-hidden="true"></i> <span>Auto</span>
+        </button>
         <!-- Sharpness / stability indicator -->
         <div class="cam-status" id="camStatus" aria-hidden="true">
           <i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> <span>Kamera startet…</span>
@@ -700,7 +710,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v13';
+const APP_VERSION = 'v14';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -719,6 +729,7 @@ let currentPickerName = '';
 let currentPickerRemaining = [];  // Raw candidates not yet loaded (for "load more")
 let editingCollId = null;         // stable card ID being re-editioned (null = new card)
 let scanInProgress = false;       // debounce flag
+let autoCaptureEnabled = localStorage.getItem('pokevault_autoCapture') !== '0'; // default ON
 let deletedCard = null;           // for undo
 let deletedIndex = -1;
 let undoTimer = null;
@@ -1611,6 +1622,8 @@ async function startScan() {
   // Full-screen camera overlay (flex column) + lock page scroll behind it
   document.getElementById('videoWrap').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  goodSince = null;
+  updateAutoToggleLabel();
   setCamStatus('starting', 'Kamera startet…');
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -1713,7 +1726,11 @@ function measureSharpness(ctx, W, H) {
   return sumSq / n - mean * mean; // variance of gradient = focus measure
 }
 
+// Auto-capture: fire once the image stays sharp for this long (a "dwell" timer)
+const AUTO_CAPTURE_DWELL_MS = 1500;
 let sharpnessHistory = [];
+let goodSince = null;   // timestamp when sharpness first became continuously "good"
+
 function updateSharpnessUI(score) {
   // Smooth over the last few readings to avoid flicker
   sharpnessHistory.push(score);
@@ -1722,16 +1739,52 @@ function updateSharpnessUI(score) {
 
   const cardback = document.getElementById('camCardback');
   // Threshold tuned empirically: a sharp, detailed card in frame pushes variance up.
-  if (avg > 90) {
-    setCamStatus('good', 'Scharf — bereit!');
+  const isGood = avg > 90;
+
+  if (isGood) {
     if (cardback) cardback.classList.add('hidden');
-  } else if (avg > 35) {
-    setCamStatus('', 'Karte ausrichten…');
-    if (cardback) cardback.classList.remove('hidden');
+    // Auto-capture: require sustained sharpness, then fire via the normal path
+    if (autoCaptureEnabled && !scanInProgress) {
+      if (goodSince == null) goodSince = Date.now();
+      const remaining = AUTO_CAPTURE_DWELL_MS - (Date.now() - goodSince);
+      if (remaining <= 0) {
+        setCamStatus('good', 'Auto-Scan…');
+        captureFrame();          // identical to tapping "Scannen"
+        return;
+      }
+      setCamStatus('good', `Auto-Scan in ${Math.ceil(remaining / 1000)}…`);
+    } else {
+      setCamStatus('good', 'Scharf — bereit!');
+    }
   } else {
-    setCamStatus('blurry', 'Unscharf — näher/Licht');
-    if (cardback) cardback.classList.remove('hidden');
+    goodSince = null;            // lost focus → restart the dwell next time
+    if (avg > 35) {
+      setCamStatus('', 'Karte ausrichten…');
+      if (cardback) cardback.classList.remove('hidden');
+    } else {
+      setCamStatus('blurry', 'Unscharf — näher/Licht');
+      if (cardback) cardback.classList.remove('hidden');
+    }
   }
+}
+
+// Toggle the auto-capture feature (persisted). stopPropagation so the tap
+// doesn't also trigger tap-to-focus on the camera stage underneath.
+function toggleAutoCapture(event) {
+  if (event) event.stopPropagation();
+  autoCaptureEnabled = !autoCaptureEnabled;
+  localStorage.setItem('pokevault_autoCapture', autoCaptureEnabled ? '1' : '0');
+  goodSince = null;            // restart the dwell after switching
+  updateAutoToggleLabel();
+}
+
+function updateAutoToggleLabel() {
+  const btn = document.getElementById('camAutoToggle');
+  if (!btn) return;
+  btn.classList.toggle('on', autoCaptureEnabled);
+  btn.classList.toggle('off', !autoCaptureEnabled);
+  btn.setAttribute('aria-pressed', autoCaptureEnabled ? 'true' : 'false');
+  btn.querySelector('span').textContent = autoCaptureEnabled ? 'Auto' : 'Auto aus';
 }
 
 function setCamStatus(cls, text) {
@@ -1792,6 +1845,7 @@ function stopCam() {
 function resetScanUI() {
   stopCam();
   scanInProgress = false;
+  goodSince = null;
   const cardback = document.getElementById('camCardback');
   if (cardback) cardback.classList.remove('hidden');
   document.getElementById('videoWrap').style.display = 'none';
