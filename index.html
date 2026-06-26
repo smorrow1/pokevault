@@ -752,6 +752,9 @@ function importCollection(event) {
         }
       }
       save(); updateStats(); renderCollection();
+      // Back-fill achievements from the imported cards and show the section again
+      // (silent — checkAchievements shows no popup; it just unlocks + re-renders)
+      checkAchievements(); renderAchievements();
       showToast(added ? `${added} Karten importiert!` : 'Alle Karten bereits vorhanden');
     } catch (err) {
       showToast('Backup konnte nicht gelesen werden');
