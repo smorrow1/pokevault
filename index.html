@@ -3190,6 +3190,14 @@ if (localStorage.getItem('pokevault_playHubCollapsed') === '1') {
 }
 updatePlayHub();
 setTimeout(maybeShowInstallHint, 1500);
+
+// Register the service worker for offline + faster repeat loads (best-effort).
+// Runs over https (GitHub Pages); silently skipped on file:// or unsupported browsers.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
