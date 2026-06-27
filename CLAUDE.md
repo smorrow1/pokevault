@@ -16,15 +16,18 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 
 ## Wichtigste Design-Prinzipien (nicht ohne Grund ändern)
 
-1. **Eine einzige HTML-Datei.** Kein Build-System, keine externen JS-Module. CSS und JS
-   sind inline. Das ist bewusst so — es hält die App wartbar und sofort deploybar.
-   Wenn das Projekt stark wächst, wäre ein Wechsel zu Vite + Vanilla-JS-Modulen der
-   nächste Schritt, aber erst wenn es wirklich nötig ist.
+1. **Eine einzige HTML-Datei** (plus `sw.js`). Kein Build-System, keine externen JS-Module.
+   CSS und JS sind inline. Das ist bewusst so — es hält die App wartbar und sofort deploybar.
+   **Einzige bewusste Ausnahme:** `sw.js` (Service Worker) liegt als eigene Datei vor, weil
+   ein SW technisch nicht inline registriert werden kann (Scope). Wenn das Projekt stark
+   wächst, wäre ein Wechsel zu Vite + Vanilla-JS-Modulen der nächste Schritt, aber erst
+   wenn es wirklich nötig ist.
 2. **Mobile-first, iOS-first.** Primär getestet auf iPhone (Vater: iPhone 17 Pro, Sohn:
    iPhone 12). Touch-Targets großzügig, kindgerecht.
 3. **Kein Overengineering.** Lieber pragmatische, robuste Lösungen als "schlaue" fragile.
-   (Beispiel: Auto-Capture per Computer Vision wurde bewusst NICHT gebaut, weil OpenCV
-   o.ä. zu schwer für eine schlanke PWA wäre und auf älteren iPhones träge liefe.)
+   (Beispiel: Es gibt inzwischen einen **leichtgewichtigen Auto-Auslöser** — reines JS,
+   Schärfe- + Bewegungsmessung auf einem groben Raster. Schwere CV-Libs wie OpenCV werden
+   weiterhin bewusst vermieden, weil sie auf älteren iPhones träge liefen.)
 4. **Daten gehören dem Nutzer.** Alles in localStorage; Export/Import als Backup ist
    Pflicht, weil ein geleerter Cache sonst die Sammlung vernichtet.
 
@@ -47,9 +50,15 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 
 ### localStorage-Schlüssel
 - `pokevault_v6` — die Sammlung (Array von Karten-Objekten). **Versionierter Key**: bei
-  Breaking Changes am Datenmodell hochzählen (v7, ...) und ggf. migrieren.
+  Breaking Changes am Datenmodell hochzählen (v7, ...) und ggf. migrieren. (Noch v6.)
 - `pokevault_apikey` — Anthropic API-Key (Klartext, nur lokal)
 - `pokevault_achievements` — Array freigeschalteter Achievement-IDs
+- `pokevault_achievementTimes` — `{id: ts}` Freischalt-Zeitstempel (für Detail-Ansicht)
+- `pokevault_challengeStart` — Anker-Timestamp (Montag) der Wochen-Challenges
+- `pokevault_challengesDone` — `{absoluteWeek: ts}` erledigte Challenges
+- `pokevault_setCache` — gecachte TCGdex-Set-Kartenlisten (TTL 7 Tage, getrimmt)
+- `pokevault_autoCapture` — Auto-Auslöser an/aus (`'0'` = aus)
+- `pokevault_playHubCollapsed` — „Spielen"-Bereich ein-/ausgeklappt
 - `pokevault_lastBackup` — Timestamp des letzten Backups
 - `pokevault_viewMode` — `grid` | `list` | `sets`
 - `pokevault_installHintDismissed` — ob der iOS-Install-Hinweis weggetippt wurde
@@ -60,10 +69,12 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   uid,          // stabile lokale ID (NIE Array-Index für Referenzen nutzen!)
   name, set, setId, setTotal, serie, releaseDate, rarity,
   price,        // Zahl (Cardmarket trend/avg), 0 wenn unbekannt
-  image,        // TCGdex Bild-URL (high.webp)
+  image,        // TCGdex Bild-URL (high.webp) — Listen leiten via thumbUrl() low.webp ab
   pricing,      // komplettes TCGdex pricing-Objekt (für Detail-Modal)
   cardId,       // TCGdex Karten-ID
   cardNumber,   // localId, z.B. "58"
+  hp,           // Zahl oder null (für KP-Challenges; nur bei neueren Scans gesetzt)
+  types,        // Array, z.B. ["Fire"] (TCGdex EN; für Typ-Challenges)
   addedAt       // Timestamp
 }
 ```
@@ -83,11 +94,26 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   prozentual zur Display-Höhe — sonst sah er auf iPhone 17 Pro vs. 12 unterschiedlich aus.
 - **Schärfe-Indikator**: misst Kanten-Varianz im Bildzentrum (~6 fps, reines JS, kein
   Paket). Loop-Start hat einen Fallback-Timeout, falls iOS `onloadedmetadata` nicht feuert.
+- **Thumbnails laden `low.webp`** (Helper `thumbUrl()` leitet aus der gespeicherten
+  high.webp-URL ab). Nur Detail-Modal/Set-Detail nutzen high.webp. Nicht zurück auf
+  `c.image` in Listen/Grid/Picker wechseln (Bandbreite/RAM).
+- **Auto-Auslöser** verlangt scharf UND ruhig (Bewegung auf grobem 8×11-Raster, damit
+  Handzittern toleriert wird) + Arming-Delay. Bewegung NICHT pixelweise messen (löste bei
+  detailreichen Karten schon bei 1px Versatz aus). Schwellen: `MOTION_STABLE_THRESHOLD`,
+  `AUTO_CAPTURE_DWELL_MS`, `AUTO_ARM_DELAY_MS`.
+- **Scan ist ein Vollbild-Overlay** (`#videoWrap` fixed), Auslöser fest unten mit
+  Safe-Area. Body-Scroll wird währenddessen gesperrt und in `stopCam()` wieder freigegeben.
+- **Service Worker (`sw.js`)**: HTML **network-first** (online immer frische Version, kein
+  „stuck on stale"), Bilder/Font stale-while-revalidate, API-Hosts NIE cachen. Diese
+  Reihenfolge nicht umdrehen, sonst kehrt das iOS-Cache-Update-Problem zurück.
+- **Feier-Popups sind gequeut** (`showCelebration`), damit Erfolg + Challenge im selben
+  Scan nacheinander statt übereinander erscheinen.
 
-## Features (Stand v9)
+## Features (Stand v17)
 
-- **Scan** per Kamera (Hochformat, 5:7-Rahmen mit ikonischem Pokéball-Kartenrücken als
-  Platzhalter, Schärfe-Indikator, Tap-to-Focus) ODER manuelle Namenssuche (ohne API-Key).
+- **Scan** als Vollbild-Overlay (5:7-Rahmen, Schärfe-Indikator, Tap-to-Focus,
+  **Auto-Auslöser** bei scharfer+ruhiger Karte mit Countdown, Auto-Schalter) ODER
+  manuelle Namenssuche (ohne API-Key).
 - **Editions-Picker** mit Set-Filter und "Mehr laden"; Auto-Sprung bei eindeutigem Treffer.
 - **Duplikat-Erkennung**: bei bereits vorhandener Karte ist "Überspringen" die
   Primäraktion, "Trotzdem" fügt als Dublette hinzu.
@@ -96,18 +122,31 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   **Alphabet-Sprungleiste** (bei Namens-Sortierung + >20 Karten).
 - **Set-Fortschritt**: horizontale Karten "X/Y", anklickbar → Detail zeigt welche Karten
   man HAT (farbig) vs. FEHLEN (ausgegraut mit "?"). Lädt volle Set-Liste von TCGdex.
-- **Achievements**: 10 Abzeichen, Freischaltung mit Konfetti + Vibration + Popup.
+- **„Spielen"-Bereich**: ein gemeinsamer, einklappbarer Block, der Challenge der Woche +
+  Set-Fortschritt + Erfolge bündelt (hält die Startseite aufgeräumt).
+- **Achievements**: 18 Abzeichen mit **Fortschrittsbalken**, antippbarer Detail-Ansicht,
+  „Nächster Erfolg"-Nudge und 3 **geheimen** Erfolgen. Freischaltung mit Konfetti + Popup.
+- **Wochen-Challenges**: jede Woche eine neue Aufgabe (12er-Zyklus, Scan-to-complete),
+  z.B. „Karte mit B", „>130 KP", „Feuer-Pokémon".
 - **Detail-Modal** pro Karte mit allen Preisdaten (Cardmarket EUR + TCGplayer USD).
+- **Set-Detail mit Cache + Prefetch** (`pokevault_setCache`) → öffnet meist ohne Spinner.
 - **Backup**: Export/Import als JSON, Backup-Erinnerung.
-- **PWA**: Manifest/Apple-Meta inline, "Zum Home-Bildschirm"-Hinweis auf iOS.
+- **PWA**: Apple-Meta inline, "Zum Home-Bildschirm"-Hinweis, **Service Worker** (`sw.js`)
+  für echtes Offline (Sammlung sichtbar) + schnelleren Wiederstart.
+- **Sichtbarer Versions-Tag** in der Topbar (`APP_VERSION`).
 
 ## Deployment-Workflow
 
-1. Änderungen an `index.html` machen.
-2. Versions-Marker im Kommentar oben in der Datei hochzählen (`PokéVault vX — ...`) —
-   hilft zu prüfen, ob nach dem Deploy die neue Version geladen ist (GitHub Pages cached).
-3. Committen + nach GitHub pushen (Claude Code kann das).
-4. Auf dem iPhone: bei hartnäckigem Cache PWA vom Homescreen löschen und neu hinzufügen.
+1. Änderungen an `index.html` (ggf. `sw.js`) machen.
+2. Versions-Marker im Kommentar oben **und** `APP_VERSION` hochzählen (`PokéVault vX — ...`)
+   — der Tag ist in der Topbar sichtbar, so sieht man nach dem Deploy, ob die neue Version
+   geladen ist.
+3. Committen + nach GitHub pushen (Claude Code kann das). Merge nach `main` (GitHub Pages
+   serviert `main`). **Hinweis:** `CLAUDE.md` lebt auf `main`; bei Feature-Branch-Merges
+   bleibt sie durch den 3-Wege-Merge erhalten.
+4. Dank Service-Worker (HTML network-first) kommt die neue Version online normalerweise von
+   selbst. Bei hartnäckigem Cache: einmal neu laden; im Notfall PWA vom Homescreen löschen
+   und neu hinzufügen. Wenn nur Assets festhängen, `CACHE`-Name in `sw.js` hochzählen.
 
 ## Konventionen
 
@@ -133,7 +172,9 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 
 - `body.style.overflow='hidden'` beim Modal könnte bei einem Fehler zwischen open/close
   gesetzt bleiben (besser try/finally oder zentraler Modal-State).
-- localStorage-Größenlimit: bei sehr großen Sammlungen (>500 Karten mit Pricing-Objekten)
-  kann `save()` fehlschlagen. Aktuell try/catch mit Fehlermeldung. Langfristig: Bilder
-  nicht im localStorage halten / IndexedDB erwägen.
-- Gesamte Logik in einer Datei (~2500 Zeilen). Ab einem gewissen Punkt modularisieren.
+- localStorage-Größenlimit: **gemessen unkritisch** — 200 Karten mit Pricing ≈ 92 KB
+  (~465 B/Karte), 500 Karten ≈ 230 KB, weit unter dem 5-MB-Limit. IndexedDB-Migration
+  daher bewusst **aufgeschoben** (Aufwand/Risiko > Nutzen für eine Kindersammlung).
+- Listen-Render schreibt die ganze Liste per `innerHTML` (gemessen ~32 ms für 200 Karten →
+  flüssig). Virtualisierung erst erwägen, wenn Sammlungen real >500–800 Karten werden.
+- Gesamte Logik in einer Datei (~3200 Zeilen). Ab einem gewissen Punkt modularisieren.

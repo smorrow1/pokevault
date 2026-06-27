@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v16 — Auto-Auslöser: Bewegung auf grobem Raster (toleriert Handzittern), nicht mehr „komplett still" nötig -->
+<!-- PokéVault v17 — Perf/PWA: low.webp-Thumbnails, Such-Debounce, Service Worker (echtes Offline) -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -710,7 +710,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v16';
+const APP_VERSION = 'v17';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -857,6 +857,13 @@ function esc(s) {
 function fmtPrice(v) {
   if (v == null) return null;
   return '€' + parseFloat(v).toFixed(2);
+}
+
+// Derive a lightweight thumbnail URL from a stored high-res TCGdex image URL.
+// Lists/grids/picker show tiny images — loading high.webp there wastes 5-10x the bytes.
+// Detail views keep the stored high.webp. No-op for non-TCGdex URLs.
+function thumbUrl(u) {
+  return u ? u.replace('/high.webp', '/low.webp') : u;
 }
 
 function fmtDate(s) {
@@ -1016,9 +1023,13 @@ function setSetFilter(value, btn) {
   activateChip('set', btn);
   afterFilterChange();
 }
+// Debounce the (full) collection re-render while typing — the query state updates
+// immediately, but rendering 100s of cards on every keystroke is wasteful.
+let collQueryTimer = null;
 function setCollQuery(value) {
   collQuery = value.trim();
-  afterFilterChange();
+  if (collQueryTimer) clearTimeout(collQueryTimer);
+  collQueryTimer = setTimeout(renderCollection, 180);
 }
 
 function activateChip(group, btn) {
@@ -1368,7 +1379,7 @@ function renderCollection() {
 // Card as a grid tile
 function cardGridHtml(c, isNewest) {
   const img = c.image
-    ? `<img class="coll-thumb" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    ? `<img class="coll-thumb" src="${esc(thumbUrl(c.image))}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : '';
   const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceHtml = c.price
@@ -1393,7 +1404,7 @@ function cardGridHtml(c, isNewest) {
 // Card as a compact list row
 function cardListHtml(c, isNewest) {
   const img = c.image
-    ? `<img class="coll-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    ? `<img class="coll-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : '';
   const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceHtml = c.price
@@ -2340,7 +2351,7 @@ function showCardPicker(result, nameArg) {
 function pickerItemsHtml(cards) {
   return cards.map((c, i) => {
     const img = c.image
-      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="picker-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
     const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
@@ -2411,7 +2422,7 @@ function pickerItemsHtmlFrom(cards, offset) {
   return cards.map((c, j) => {
     const i = offset + j;
     const img = c.image
-      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="picker-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
     const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
@@ -3179,6 +3190,14 @@ if (localStorage.getItem('pokevault_playHubCollapsed') === '1') {
 }
 updatePlayHub();
 setTimeout(maybeShowInstallHint, 1500);
+
+// Register the service worker for offline + faster repeat loads (best-effort).
+// Runs over https (GitHub Pages); silently skipped on file:// or unsupported browsers.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
