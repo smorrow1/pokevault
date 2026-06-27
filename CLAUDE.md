@@ -62,6 +62,13 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - `pokevault_lastBackup` — Timestamp des letzten Backups
 - `pokevault_viewMode` — `grid` | `list` | `sets`
 - `pokevault_installHintDismissed` — ob der iOS-Install-Hinweis weggetippt wurde
+- `pokevault_onboardingDismissed` — ob der Erststart-Hinweis weggetippt wurde
+
+### CSS / Theming
+- **Design-Tokens** liegen in `:root` (`--c-brand`, `--c-brand-d/-dd`, `--c-bg`, `--c-border`,
+  `--c-text`, `--c-mint`, `--c-mint-bd`, `--c-gold`). Neue Kernfarben über Tokens, nicht neu
+  hartkodieren. **Achtung:** Tokens NUR im `<style>`-Block verwenden — NICHT in JS-Farb-Arrays
+  (Konfetti) oder in `<head>`-Meta / SVG-Data-URIs (dort kein `var()`).
 
 ### Karten-Datenmodell (ein Eintrag in der Sammlung)
 ```js
@@ -134,6 +141,8 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - **PWA**: Apple-Meta inline, "Zum Home-Bildschirm"-Hinweis, **Service Worker** (`sw.js`)
   für echtes Offline (Sammlung sichtbar) + schnelleren Wiederstart.
 - **Sichtbarer Versions-Tag** in der Topbar (`APP_VERSION`).
+- **Erststart-Onboarding**: wegklickbarer Willkommens-Block bei leerer Sammlung
+  (erklärt Scan vs. Suche ohne API-Key). Nur einmal, danach gemerkt.
 
 ## Deployment-Workflow
 
