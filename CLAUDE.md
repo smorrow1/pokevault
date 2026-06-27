@@ -65,10 +65,20 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - `pokevault_onboardingDismissed` — ob der Erststart-Hinweis weggetippt wurde
 
 ### CSS / Theming
-- **Design-Tokens** liegen in `:root` (`--c-brand`, `--c-brand-d/-dd`, `--c-bg`, `--c-border`,
-  `--c-text`, `--c-mint`, `--c-mint-bd`, `--c-gold`). Neue Kernfarben über Tokens, nicht neu
-  hartkodieren. **Achtung:** Tokens NUR im `<style>`-Block verwenden — NICHT in JS-Farb-Arrays
-  (Konfetti) oder in `<head>`-Meta / SVG-Data-URIs (dort kein `var()`).
+- **Design-Tokens** liegen in `:root`: Marke (`--c-brand`, `--c-brand-d/-dd`), Flächen
+  (`--c-surface`, `--c-surface-2`, `--c-ph`), Text (`--c-text`, `--c-n-444…ccc` Grautöne),
+  Rahmen (`--c-border`, `--c-bd2`, `--c-track`), Akzente (`--c-mint`, `--c-mint-bd`, `--c-gold`,
+  `--c-gold-tint`, `--c-brand-tint`) und **`--c-on-brand`/`--c-on-brand-2`** (helle Schrift auf
+  der grünen Topbar — bleiben in BEIDEN Modi hell!). Neue Kernfarben über Tokens.
+- **Dark Mode**: `@media (prefers-color-scheme: dark)` überschreibt die Tokens (folgt der
+  iOS-Systemeinstellung, kein manueller Schalter). **Regeln, nicht regressieren:**
+  - `--c-mint`/`--c-mint-bd` sind **Flächen/Border** (werden dunkel) — für helle Schrift auf
+    Grün **`--c-on-brand`** nutzen, sonst wird die Topbar-Schrift im Dark Mode unsichtbar.
+  - `#fff` als **Fläche** → `var(--c-surface)`; `#fff` als **Schrift auf Farbe** bleibt `#fff`.
+  - **Achtung:** Tokens NUR im `<style>`-Block und in `style="…"`-Attributen verwenden —
+    NICHT in JS-Farb-Arrays (Konfetti) oder in `<head>`-Meta / SVG-Data-URIs (dort kein `var()`).
+  - Inline-Textfarben in HTML/JS-Templates sollten Tokens nutzen, damit sie im Dark Mode
+    lesbar bleiben (Ausnahme: der selbst-weiße iOS-Install-Hinweis behält feste Farben).
 
 ### Karten-Datenmodell (ein Eintrag in der Sammlung)
 ```js
@@ -143,6 +153,7 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - **Sichtbarer Versions-Tag** in der Topbar (`APP_VERSION`).
 - **Erststart-Onboarding**: wegklickbarer Willkommens-Block bei leerer Sammlung
   (erklärt Scan vs. Suche ohne API-Key). Nur einmal, danach gemerkt.
+- **Dark Mode**: folgt automatisch der iOS-Systemeinstellung (kein Schalter).
 
 ## Deployment-Workflow
 
