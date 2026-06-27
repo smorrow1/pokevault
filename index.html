@@ -1023,9 +1023,13 @@ function setSetFilter(value, btn) {
   activateChip('set', btn);
   afterFilterChange();
 }
+// Debounce the (full) collection re-render while typing — the query state updates
+// immediately, but rendering 100s of cards on every keystroke is wasteful.
+let collQueryTimer = null;
 function setCollQuery(value) {
   collQuery = value.trim();
-  afterFilterChange();
+  if (collQueryTimer) clearTimeout(collQueryTimer);
+  collQueryTimer = setTimeout(renderCollection, 180);
 }
 
 function activateChip(group, btn) {
