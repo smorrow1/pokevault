@@ -859,6 +859,13 @@ function fmtPrice(v) {
   return '€' + parseFloat(v).toFixed(2);
 }
 
+// Derive a lightweight thumbnail URL from a stored high-res TCGdex image URL.
+// Lists/grids/picker show tiny images — loading high.webp there wastes 5-10x the bytes.
+// Detail views keep the stored high.webp. No-op for non-TCGdex URLs.
+function thumbUrl(u) {
+  return u ? u.replace('/high.webp', '/low.webp') : u;
+}
+
 function fmtDate(s) {
   if (!s) return '';
   try { return new Date(s).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'}); }
@@ -1368,7 +1375,7 @@ function renderCollection() {
 // Card as a grid tile
 function cardGridHtml(c, isNewest) {
   const img = c.image
-    ? `<img class="coll-thumb" src="${esc(c.image)}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    ? `<img class="coll-thumb" src="${esc(thumbUrl(c.image))}" alt="Kartenbild von ${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : '';
   const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceHtml = c.price
@@ -1393,7 +1400,7 @@ function cardGridHtml(c, isNewest) {
 // Card as a compact list row
 function cardListHtml(c, isNewest) {
   const img = c.image
-    ? `<img class="coll-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    ? `<img class="coll-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : '';
   const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceHtml = c.price
@@ -2340,7 +2347,7 @@ function showCardPicker(result, nameArg) {
 function pickerItemsHtml(cards) {
   return cards.map((c, i) => {
     const img = c.image
-      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="picker-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
     const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
@@ -2411,7 +2418,7 @@ function pickerItemsHtmlFrom(cards, offset) {
   return cards.map((c, j) => {
     const i = offset + j;
     const img = c.image
-      ? `<img class="picker-thumb" src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="picker-thumb" src="${esc(thumbUrl(c.image))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const ph = `<div class="picker-thumb-ph" style="${c.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
     const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
