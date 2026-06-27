@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v16 — Auto-Auslöser: Bewegung auf grobem Raster (toleriert Handzittern), nicht mehr „komplett still" nötig -->
+<!-- PokéVault v17 — Perf/PWA: low.webp-Thumbnails, Such-Debounce, Service Worker (echtes Offline) -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -710,7 +710,7 @@ html,body{min-height:100vh;background:#f4f4f2;font-family:-apple-system,BlinkMac
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v16';
+const APP_VERSION = 'v17';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
