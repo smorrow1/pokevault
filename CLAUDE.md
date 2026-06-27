@@ -38,15 +38,22 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   Bilder, Set-Infos und **Preise**. Preise stammen von **Cardmarket** (EUR), Felder:
   `pricing.cardmarket.{trend, avg7, avg30, avg, updated}`. Auch `pricing.tcgplayer` (USD)
   wird wo vorhanden angezeigt. Nicht jede Karte hat Preisdaten → "Kein Preis" ist normal.
-  - Karten-Suche: `/v2/{de|en}/cards?name=...` (zuerst DE, dann EN als Fallback)
-  - Karten-Detail: `/v2/en/cards/{id}` (Detail immer EN wegen Preisdaten)
-  - Set-Kartenliste (für "fehlende Karten"): `/v2/en/sets/{setId}`
+  - Karten-Suche: `/v2/{lang}/cards?name=...` — Reihenfolge **erkannte Sprache zuerst**
+    (`ja`/`ko` bei japanischen/koreanischen Karten), dann `de`, dann `en`. Ohne Hinweis:
+    DE→EN wie bisher. Beim ersten Sprachtreffer wird in dieser Sprache geblieben.
+  - Karten-Detail: `/v2/{matchedLang}/cards/{id}`, mit **EN-Fallback** pro Karte, falls die
+    ID in der Sprache fehlt (z. B. JP-exklusive Sets). Bild/Preis kommen aus dieser Sprache;
+    Cardmarket-Pricing (EUR) fehlt bei JP/KR oft → „Kein Preis" (normal).
+  - Set-Kartenliste (für "fehlende Karten"): `/v2/en/sets/{setId}` — **noch EN-only**;
+    JP/KR-exklusive Sets zeigen Set-Fortschritt ggf. nicht. Sprach-bewusster Set-Fetch offen.
 - **Anthropic API** (`api.anthropic.com/v1/messages`) — für die Kamera-Erkennung
   (Claude Vision liest Name + Kartennummer vom Foto). Nutzt den **eigenen API-Key des
   Nutzers** (Header `x-api-key` + `anthropic-dangerous-direct-browser-access: true`).
   Modell: `claude-sonnet-4-6`. **WICHTIG:** Der Nutzer braucht Guthaben auf seinem
   Anthropic-Konto, sonst kommt "credit balance too low" (wird freundlich abgefangen).
-  Die manuelle Suche funktioniert komplett ohne API-Key.
+  Die manuelle Suche funktioniert komplett ohne API-Key. Der Vision-Prompt gibt
+  `language` als `de|en|ja|ko` zurück und liefert den Namen im **Originalscript**
+  (Japanisch/Koreanisch nicht übersetzen) — steuert die Such-Sprache (s. TCGdex).
 
 ### localStorage-Schlüssel
 - `pokevault_v6` — die Sammlung (Array von Karten-Objekten). **Versionierter Key**: bei
@@ -92,6 +99,7 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   cardNumber,   // localId, z.B. "58"
   hp,           // Zahl oder null (für KP-Challenges; nur bei neueren Scans gesetzt)
   types,        // Array, z.B. ["Fire"] (TCGdex EN; für Typ-Challenges)
+  lang,         // TCGdex-Sprache der Karte ('en'|'de'|'ja'|'ko') für Detail/Editions-Refetch
   addedAt       // Timestamp
 }
 ```
@@ -106,7 +114,11 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - **Such-Scoring**: Häufige Namen (z.B. Pikachu, 100+ Treffer) werden nach Relevanz
   gescored (exakter Name +100, Nummer-Match +200) und gefiltert, dann lazy in 12er-Seiten
   geladen ("Mehr laden"). Vorher wurden blind nur die ersten 20 geladen → richtige Karte
-  oft nicht dabei.
+  oft nicht dabei. **Nicht regressieren** beim Mehrsprach-Umbau.
+- **Sprachbewusste Suche** (`searchAllCards(name, num, langHint)`): probiert `[erkannt, de, en]`,
+  bleibt beim ersten Treffer in dessen Sprache (`matchedLang`); Enrichment/Detail/Bild in
+  derselben Sprache (`fetchCardDetail`/`cardFromDetail`, EN-Fallback). `matchedLang` wandert via
+  `currentPickerLang` in „Mehr laden" und via Karten-`lang` in `addCard`/`changeEdition`.
 - **Kamera-Rahmen** hat festes 5:7-Seitenverhältnis (echte Kartenproportion), NICHT
   prozentual zur Display-Höhe — sonst sah er auf iPhone 17 Pro vs. 12 unterschiedlich aus.
 - **Schärfe-Indikator**: misst Kanten-Varianz im Bildzentrum (~6 fps, reines JS, kein
@@ -130,7 +142,8 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 
 - **Scan** als Vollbild-Overlay (5:7-Rahmen, Schärfe-Indikator, Tap-to-Focus,
   **Auto-Auslöser** bei scharfer+ruhiger Karte mit Countdown, Auto-Schalter) ODER
-  manuelle Namenssuche (ohne API-Key).
+  manuelle Namenssuche (ohne API-Key). **Erkennt DE/EN/JA/KO** (Auto-Erkennung der
+  Kartensprache, sprachbewusste TCGdex-Suche).
 - **Editions-Picker** mit Set-Filter und "Mehr laden"; Auto-Sprung bei eindeutigem Treffer.
 - **Duplikat-Erkennung**: bei bereits vorhandener Karte ist "Überspringen" die
   Primäraktion, "Trotzdem" fügt als Dublette hinzu.
