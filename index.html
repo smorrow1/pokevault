@@ -45,6 +45,17 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 .stat-val{font-size:22px;font-weight:600;color:var(--c-text)}
 .stat-val.green{color:var(--c-brand-d)}
 
+/* ── Onboarding (first run) ── */
+.onboarding{position:relative;margin:14px 14px 0;background:linear-gradient(180deg,var(--c-mint),#fff);border:0.5px solid var(--c-mint-bd);border-radius:14px;padding:16px 16px 14px}
+.onboarding-close{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.7);border:0.5px solid var(--c-mint-bd);display:flex;align-items:center;justify-content:center;color:var(--c-brand-d);cursor:pointer;font-size:14px;-webkit-tap-highlight-color:transparent}
+.onboarding-title{font-size:17px;font-weight:700;color:var(--c-brand-dd);display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.onboarding-lead{font-size:13px;color:var(--c-brand-d);margin-bottom:10px;font-weight:600}
+.onboarding-steps{list-style:none;display:flex;flex-direction:column;gap:9px;margin:0 0 13px}
+.onboarding-steps li{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.45;color:var(--c-text)}
+.ob-num{flex-shrink:0;width:28px;height:28px;border-radius:8px;background:var(--c-brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.onboarding-cta{width:100%;padding:12px;background:var(--c-brand);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.onboarding-cta:active{background:var(--c-brand-d)}
+
 /* ── Scan ── */
 .scan-section{padding:14px}
 .scan-trigger{border:1.5px dashed var(--c-mint-bd);border-radius:12px;background:var(--c-mint);padding:22px 16px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s}
@@ -465,6 +476,19 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <div class="stat-label"><i class="ti ti-star" aria-hidden="true"></i> Wertvollste</div>
       <div class="stat-val green" id="topVal">—</div>
     </div>
+  </section>
+
+  <!-- First-run onboarding — shown once while the collection is empty -->
+  <section class="onboarding" id="onboardingCard" aria-label="Erste Schritte" style="display:none">
+    <button class="onboarding-close" onclick="dismissOnboarding()" aria-label="Hinweis schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="onboarding-title"><i class="ti ti-confetti" aria-hidden="true"></i> Willkommen bei PokéVault!</div>
+    <p class="onboarding-lead">So fügst du deine erste Karte hinzu:</p>
+    <ol class="onboarding-steps">
+      <li><span class="ob-num"><i class="ti ti-camera" aria-hidden="true"></i></span> <span><strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.</span></li>
+      <li><span class="ob-num"><i class="ti ti-search" aria-hidden="true"></i></span> <span><strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.</span></li>
+      <li><span class="ob-num"><i class="ti ti-trophy" aria-hidden="true"></i></span> <span>Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.</span></li>
+    </ol>
+    <button class="onboarding-cta" onclick="dismissOnboarding()"><i class="ti ti-arrow-down" aria-hidden="true"></i> Los geht's!</button>
   </section>
 
   <!-- "Spielen" hub — groups Challenge + Set progress + Achievements under one
@@ -1365,6 +1389,7 @@ function renderCollection() {
       emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten in dieser Kategorie.</p>';
     }
     grid.innerHTML = `<div class="empty-state" role="listitem">${emptyMsg}</div>`;
+    maybeShowOnboarding();
     return;
   }
 
@@ -1385,6 +1410,8 @@ function renderCollection() {
 
   // Alphabet jump bar — only useful when sorted by name with enough cards
   renderAlphaBar(cards);
+
+  maybeShowOnboarding();
 }
 
 // Card as a grid tile
@@ -3172,6 +3199,20 @@ function dismissInstallHint() {
   if (el) el.remove();
 }
 
+// ── First-run onboarding ────────────────────────────────
+// Shown only while the collection is empty and not yet dismissed.
+function maybeShowOnboarding() {
+  const el = document.getElementById('onboardingCard');
+  if (!el) return;
+  const show = collection.length === 0 && localStorage.getItem('pokevault_onboardingDismissed') !== '1';
+  el.style.display = show ? 'block' : 'none';
+}
+function dismissOnboarding() {
+  localStorage.setItem('pokevault_onboardingDismissed', '1');
+  const el = document.getElementById('onboardingCard');
+  if (el) el.style.display = 'none';
+}
+
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
@@ -3200,6 +3241,7 @@ if (localStorage.getItem('pokevault_playHubCollapsed') === '1') {
   if (hub) hub.classList.add('collapsed');
 }
 updatePlayHub();
+maybeShowOnboarding();
 setTimeout(maybeShowInstallHint, 1500);
 
 // Register the service worker for offline + faster repeat loads (best-effort).
