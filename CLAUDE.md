@@ -63,6 +63,7 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - `pokevault_viewMode` — `grid` | `list` | `sets`
 - `pokevault_installHintDismissed` — ob der iOS-Install-Hinweis weggetippt wurde
 - `pokevault_onboardingDismissed` — ob der Erststart-Hinweis weggetippt wurde
+- `pokevault_collectorName` — optionaler Sammler-Name (zeigt „{Name}' Sammlung" in der Topbar)
 
 ### CSS / Theming
 - **Design-Tokens** liegen in `:root`: Marke (`--c-brand`, `--c-brand-d/-dd`), Flächen
@@ -160,6 +161,8 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
   (Startseite aufgeräumt). Der versteckte `#importFile`-Input lebt jetzt auf Body-Ebene.
   Funktionen `saveApiKey`/`exportCollection`/`importCollection`/`updateBackupNote` unverändert
   wiederverwendet; `lastBackupNote` existiert nur, wenn das Menü offen ist (Update guarded).
+- **Sammler-Name** (optional, in Settings): `updateTopbarGreeting()` zeigt „{Name}' Sammlung"
+  (deutscher Genitiv: Namen auf s/x/z nur Apostroph), sonst Default „Deine Karten-Sammlung".
 
 ## Deployment-Workflow
 

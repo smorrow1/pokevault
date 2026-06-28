@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v22 — Stats: Gesamtwert als Kachel (Topbar entschlackt), 2 Kacheln -->
+<!-- PokéVault v23 — Personalisierung: Sammler-Name in Settings, Anzeige im Home-Screen -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -493,7 +493,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <div class="pokeball" aria-hidden="true"><i class="ti ti-pokeball"></i></div>
       <div>
         <div class="topbar-title">PokéVault</div>
-        <div class="topbar-sub">Deine Karten-Sammlung <span class="app-version" id="appVersion"></span></div>
+        <div class="topbar-sub"><span id="topbarSub">Deine Karten-Sammlung</span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
     <div class="topbar-right">
@@ -748,7 +748,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v22';
+const APP_VERSION = 'v23';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -877,6 +877,29 @@ function updateBackupNote() {
 // ═══════════════════════════════════════════════════════
 function getKey() { return localStorage.getItem('pokevault_apikey') || ''; }
 
+// ── Collector name (optional personalisation) ───────────
+function getCollectorName() { return (localStorage.getItem('pokevault_collectorName') || '').trim(); }
+
+function saveCollectorName() {
+  const el = document.getElementById('collectorNameInput');
+  const name = el ? el.value.trim().slice(0, 24) : '';
+  if (name) { localStorage.setItem('pokevault_collectorName', name); showToast('Name gespeichert!'); }
+  else { localStorage.removeItem('pokevault_collectorName'); showToast('Name entfernt'); }
+  updateTopbarGreeting();
+  if (document.querySelector('.settings-head')) openSettings();   // refresh hint if open
+}
+
+// Show "{Name}s Sammlung" when a name is set, else the default subtitle.
+// German genitive: names ending in s/ss/x/z take just an apostrophe (Lukas' Sammlung).
+function updateTopbarGreeting() {
+  const el = document.getElementById('topbarSub');
+  if (!el) return;
+  const name = getCollectorName();
+  if (!name) { el.textContent = 'Deine Karten-Sammlung'; return; }
+  const poss = /[sxz]$/i.test(name) ? `${name}'` : `${name}s`;
+  el.textContent = `${poss} Sammlung`;
+}
+
 function saveApiKey() {
   const el = document.getElementById('apiKeyInput');
   const k = el ? el.value.trim() : '';
@@ -892,6 +915,13 @@ function openSettings() {
   document.getElementById('modalContent').innerHTML = `
     <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> Einstellungen</div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-user" aria-hidden="true"></i> Sammler-Name (optional)</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">Wird oben auf dem Start-Bildschirm angezeigt (z.&nbsp;B. „Lukas&nbsp;Sammlung"). Leer lassen für die Standard-Anzeige.</div>
+      <input type="text" id="collectorNameInput" class="settings-input" style="font-family:inherit" placeholder="z.B. Lukas" autocomplete="off" maxlength="24" value="${esc(getCollectorName())}"/>
+      <button class="btn-save-api" onclick="saveCollectorName()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
+    </div>
 
     <div class="settings-group">
       <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> Anthropic API-Key (optional)</div>
@@ -3269,9 +3299,10 @@ function dismissOnboarding() {
 // INIT
 // ═══════════════════════════════════════════════════════
 // (API key & backup now live in the Settings modal — gear icon in the topbar)
-// Show the build version in the topbar
+// Show the build version + collector greeting in the topbar
 const verEl = document.getElementById('appVersion');
 if (verEl) verEl.textContent = APP_VERSION;
+updateTopbarGreeting();
 // Restore saved view mode button state
 ['grid', 'list', 'sets'].forEach(m => {
   const btn = document.getElementById('view' + m.charAt(0).toUpperCase() + m.slice(1));
