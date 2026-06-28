@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v23 — Personalisierung: Sammler-Name in Settings, Anzeige im Home-Screen -->
+<!-- PokéVault v25 — i18n Schritt 2: alle dynamischen Strings (Picker/Result/Detail/Toasts/Scan) DE/EN -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -53,6 +53,9 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 .settings-version{font-size:12px;color:var(--c-n-aaa);text-align:center;margin-top:4px}
 .settings-input{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid var(--c-bd2);border-radius:8px;background:var(--c-surface-2);color:var(--c-text);outline:none;font-family:monospace;-webkit-appearance:none}
 .settings-input:focus{border-color:var(--c-brand)}
+.lang-choice{display:flex;gap:8px}
+.lang-opt{flex:1;padding:10px;font-size:14px;font-weight:600;border:1px solid var(--c-bd2);border-radius:9px;background:var(--c-surface);color:var(--c-text);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.lang-opt.on{background:var(--c-mint);border-color:var(--c-mint-bd);color:var(--c-brand-dd)}
 .pokeball{width:36px;height:36px;border-radius:50%;border:2px solid var(--c-on-brand-2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .topbar-title{font-size:20px;font-weight:600}
 .topbar-sub{font-size:11px;color:var(--c-on-brand-2);margin-top:1px}
@@ -505,11 +508,11 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 
   <section class="stats-row" aria-label="Sammlungsstatistiken">
     <div class="stat-card">
-      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> Karten</div>
+      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> <span data-i18n="stats.cards">Karten</span></div>
       <div class="stat-val" id="cardCount" aria-live="polite">0</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true"></i> Gesamtwert</div>
+      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true"></i> <span data-i18n="stats.total">Gesamtwert</span></div>
       <div class="stat-val green" id="totalVal" aria-live="polite">€0.00</div>
     </div>
   </section>
@@ -517,21 +520,21 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <!-- First-run onboarding — shown once while the collection is empty -->
   <section class="onboarding" id="onboardingCard" aria-label="Erste Schritte" style="display:none">
     <button class="onboarding-close" onclick="dismissOnboarding()" aria-label="Hinweis schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
-    <div class="onboarding-title"><i class="ti ti-confetti" aria-hidden="true"></i> Willkommen bei PokéVault!</div>
-    <p class="onboarding-lead">So fügst du deine erste Karte hinzu:</p>
+    <div class="onboarding-title"><i class="ti ti-confetti" aria-hidden="true"></i> <span data-i18n="ob.title">Willkommen bei PokéVault!</span></div>
+    <p class="onboarding-lead" data-i18n="ob.lead">So fügst du deine erste Karte hinzu:</p>
     <ol class="onboarding-steps">
-      <li><span class="ob-num"><i class="ti ti-camera" aria-hidden="true"></i></span> <span><strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.</span></li>
-      <li><span class="ob-num"><i class="ti ti-search" aria-hidden="true"></i></span> <span><strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.</span></li>
-      <li><span class="ob-num"><i class="ti ti-trophy" aria-hidden="true"></i></span> <span>Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.</span></li>
+      <li><span class="ob-num"><i class="ti ti-camera" aria-hidden="true"></i></span> <span data-i18n-html="ob.step1"><strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.</span></li>
+      <li><span class="ob-num"><i class="ti ti-search" aria-hidden="true"></i></span> <span data-i18n-html="ob.step2"><strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.</span></li>
+      <li><span class="ob-num"><i class="ti ti-trophy" aria-hidden="true"></i></span> <span data-i18n-html="ob.step3">Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.</span></li>
     </ol>
-    <button class="onboarding-cta" onclick="dismissOnboarding()"><i class="ti ti-arrow-down" aria-hidden="true"></i> Los geht's!</button>
+    <button class="onboarding-cta" onclick="dismissOnboarding()"><i class="ti ti-arrow-down" aria-hidden="true"></i> <span data-i18n="ob.cta">Los geht's!</span></button>
   </section>
 
   <!-- "Spielen" hub — groups Challenge + Set progress + Achievements under one
        collapsible header so the home screen stays tidy. -->
   <section class="play-hub" id="playHub" style="display:none">
     <div class="play-hub-header" onclick="togglePlayHub()" role="button" tabindex="0" aria-label="Spielen-Bereich ein-/ausklappen" onkeydown="if(event.key==='Enter'||event.key===' ')togglePlayHub()">
-      <h2 class="play-hub-title"><i class="ti ti-device-gamepad-2" aria-hidden="true"></i> Spielen</h2>
+      <h2 class="play-hub-title"><i class="ti ti-device-gamepad-2" aria-hidden="true"></i> <span data-i18n="section.play">Spielen</span></h2>
       <div class="play-hub-right">
         <span class="play-hub-summary" id="playHubSummary" aria-hidden="true"></span>
         <i class="ti ti-chevron-down play-hub-chevron" aria-hidden="true"></i>
@@ -545,7 +548,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <!-- Set progress — the retention loop: "what do I still need?" -->
       <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
         <div class="set-progress-header">
-          <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> Set-Fortschritt</h2>
+          <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> <span data-i18n="section.setProgress">Set-Fortschritt</span></h2>
         </div>
         <div class="set-progress-grid"></div>
       </section>
@@ -553,7 +556,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <!-- Achievements — collectible badges -->
       <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
         <div class="achievements-header">
-          <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
+          <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> <span data-i18n="section.achievements">Erfolge</span></h2>
           <span class="achievements-count" id="achievementsCount">0 / 0</span>
         </div>
         <div class="next-achievement" id="nextAchievement" style="display:none"></div>
@@ -570,8 +573,8 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <section class="scan-section" aria-label="Karte scannen oder suchen">
     <div class="scan-trigger" id="scanTrigger" onclick="startScan()" role="button" tabindex="0" aria-label="Kamera öffnen um eine Karte zu scannen" onkeydown="if(event.key==='Enter'||event.key===' ')startScan()">
       <div class="icon" aria-hidden="true"><i class="ti ti-camera"></i></div>
-      <h2 style="font-size:16px;font-weight:600;color:var(--c-brand-dd);margin-bottom:4px">Karte scannen</h2>
-      <p>Kamera öffnen → fotografieren → Edition wählen</p>
+      <h2 data-i18n="scan.title" style="font-size:16px;font-weight:600;color:var(--c-brand-dd);margin-bottom:4px">Karte scannen</h2>
+      <p data-i18n="scan.sub">Kamera öffnen → fotografieren → Edition wählen</p>
     </div>
 
     <div id="videoWrap" aria-label="Kamera-Vorschau">
@@ -610,13 +613,13 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
         </button>
         <!-- Sharpness / stability indicator -->
         <div class="cam-status" id="camStatus" aria-hidden="true">
-          <i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> <span>Kamera startet…</span>
+          <i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> <span data-i18n="cam.start">Kamera startet…</span>
         </div>
-        <div class="cam-hint" aria-hidden="true">Karte in den Rahmen legen · auf die Karte tippen für Schärfe</div>
+        <div class="cam-hint" aria-hidden="true" data-i18n="cam.hint">Karte in den Rahmen legen · auf die Karte tippen für Schärfe</div>
       </div>
       <div class="video-overlay">
         <button class="btn-capture" id="captureBtn" onclick="captureFrame()" aria-label="Karte jetzt scannen">
-          <i class="ti ti-camera" aria-hidden="true"></i> Scannen
+          <i class="ti ti-camera" aria-hidden="true"></i> <span data-i18n="scan.btn">Scannen</span>
         </button>
         <button class="btn-cancel" onclick="cancelScan()" aria-label="Scan abbrechen">✕</button>
       </div>
@@ -626,7 +629,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 
     <div id="processingMsg" role="status" aria-live="polite">
       <i class="spin ti ti-loader-2" aria-hidden="true"></i>
-      <p id="processingText">Bitte warten…</p>
+      <p id="processingText" data-i18n="proc.wait">Bitte warten…</p>
       <p class="sub" id="processingStep"></p>
     </div>
 
@@ -642,7 +645,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       type="search"
       id="manualInput"
       class="manual-input"
-      placeholder="Kartenname suchen, z.B. Mewtu…"
+      placeholder="Kartenname suchen, z.B. Mewtu…" data-i18n-ph="search.placeholder"
       autocomplete="off"
       onkeydown="if(event.key==='Enter')manualSearch()"
       aria-label="Pokémon-Kartenname eingeben"
@@ -655,29 +658,29 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <!-- Collection -->
   <section aria-label="Meine Sammlung">
     <div class="section-header">
-      <h2 class="section-title">Meine Sammlung</h2>
+      <h2 class="section-title" data-i18n="coll.title">Meine Sammlung</h2>
       <span class="section-count" id="collCount" aria-live="polite">0 Karten</span>
     </div>
 
     <!-- Search within own collection -->
     <div class="coll-search-row">
       <i class="ti ti-search coll-search-icon" aria-hidden="true"></i>
-      <input type="search" id="collSearch" class="coll-search-input" placeholder="In Sammlung suchen…" autocomplete="off" oninput="setCollQuery(this.value)" aria-label="In meiner Sammlung suchen"/>
+      <input type="search" id="collSearch" class="coll-search-input" placeholder="In Sammlung suchen…" data-i18n-ph="coll.searchPlaceholder" autocomplete="off" oninput="setCollQuery(this.value)" aria-label="In meiner Sammlung suchen"/>
     </div>
 
     <!-- Toolbar: filter toggle + sort, always compact in one row -->
     <div class="coll-toolbar">
       <button class="toolbar-btn" id="filterToggle" onclick="toggleFilters()" aria-expanded="false" aria-controls="filterPanel">
         <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
-        <span>Filter</span>
+        <span data-i18n="coll.filter">Filter</span>
         <span class="filter-count-badge" id="filterCountBadge" style="display:none">0</span>
       </button>
       <select id="sortSelect" class="toolbar-sort" onchange="setSort(this.value)" aria-label="Sammlung sortieren">
-        <option value="newest">Neueste zuerst</option>
-        <option value="price-desc">Wert: hoch → niedrig</option>
-        <option value="price-asc">Wert: niedrig → hoch</option>
-        <option value="name">Name (A–Z)</option>
-        <option value="release">Erscheinungsdatum</option>
+        <option value="newest" data-i18n="sort.newest">Neueste zuerst</option>
+        <option value="price-desc" data-i18n="sort.priceDesc">Wert: hoch → niedrig</option>
+        <option value="price-asc" data-i18n="sort.priceAsc">Wert: niedrig → hoch</option>
+        <option value="name" data-i18n="sort.name">Name (A–Z)</option>
+        <option value="release" data-i18n="sort.release">Erscheinungsdatum</option>
       </select>
       <div class="view-toggle" role="group" aria-label="Ansicht wechseln">
         <button class="view-btn active" id="viewGrid" onclick="setViewMode('grid')" aria-label="Kachelansicht" title="Kacheln"><i class="ti ti-layout-grid" aria-hidden="true"></i></button>
@@ -733,8 +736,8 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 
 <!-- Undo bar -->
 <div id="undoBar" role="alert" aria-live="assertive">
-  <span id="undoMsg">Karte entfernt</span>
-  <button onclick="undoDelete()" aria-label="Löschen rückgängig machen">Rückgängig</button>
+  <span id="undoMsg" data-i18n="undo.removed">Karte entfernt</span>
+  <button onclick="undoDelete()" aria-label="Löschen rückgängig machen" data-i18n="undo.undo">Rückgängig</button>
 </div>
 
 <!-- Achievement unlock popup -->
@@ -748,7 +751,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v23';
+const APP_VERSION = 'v25';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -773,6 +776,254 @@ let deletedIndex = -1;
 let undoTimer = null;
 
 // ═══════════════════════════════════════════════════════
+// i18n — lightweight dictionary + t() helper (no build step)
+// Step 1 covers the static home-screen shell + settings. Deeper dynamic
+// strings (achievements/challenges/toasts/modals) follow in a later slice.
+// ═══════════════════════════════════════════════════════
+const STRINGS = {
+  de: {
+    'topbar.subDefault': 'Deine Karten-Sammlung',
+    'stats.cards': 'Karten', 'stats.total': 'Gesamtwert',
+    'section.play': 'Spielen', 'section.setProgress': 'Set-Fortschritt', 'section.achievements': 'Erfolge',
+    'scan.title': 'Karte scannen', 'scan.sub': 'Kamera öffnen → fotografieren → Edition wählen',
+    'search.placeholder': 'Kartenname suchen, z.B. Mewtu…',
+    'coll.title': 'Meine Sammlung', 'coll.searchPlaceholder': 'In Sammlung suchen…', 'coll.filter': 'Filter',
+    'coll.cardsSuffix': 'Karten', 'coll.new': 'NEU',
+    'sort.newest': 'Neueste zuerst', 'sort.priceDesc': 'Wert: hoch → niedrig', 'sort.priceAsc': 'Wert: niedrig → hoch',
+    'sort.name': 'Name (A–Z)', 'sort.release': 'Erscheinungsdatum',
+    'empty.none': 'Noch keine Karten in deiner Sammlung.', 'empty.scanFirst': 'Scanne deine erste Karte!',
+    'empty.noFilter': 'Keine Karten passen zu Suche/Filter.', 'empty.noCat': 'Keine Karten in dieser Kategorie.',
+    'ob.title': 'Willkommen bei PokéVault!', 'ob.lead': 'So fügst du deine erste Karte hinzu:',
+    'ob.step1': '<strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.',
+    'ob.step2': '<strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.',
+    'ob.step3': 'Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.',
+    'ob.cta': "Los geht's!",
+    'set.title': 'Einstellungen', 'set.lang': 'Sprache', 'set.langSub': 'Sprache der App-Oberfläche.',
+    'set.nameTitle': 'Sammler-Name (optional)',
+    'set.nameSub': 'Wird oben auf dem Start-Bildschirm angezeigt. Leer lassen für die Standard-Anzeige.',
+    'set.namePh': 'z.B. Lukas',
+    'set.apiTitle': 'Anthropic API-Key (optional)',
+    'set.apiSub': 'Für die automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong>, wird nur lokal gespeichert. Ohne Key funktioniert die manuelle Suche vollständig.',
+    'set.apiSaved': 'Key gespeichert', 'set.save': 'Speichern',
+    'set.scan': 'Scan', 'set.auto': 'Auto-Auslöser', 'set.autoSub': 'Löst aus, wenn die Karte scharf & ruhig im Rahmen liegt.',
+    'set.backup': 'Sammlung sichern', 'set.backupSub': 'Lade ein Backup herunter, damit nichts verloren geht.',
+    'set.backupDl': 'Backup herunterladen', 'set.backupLoad': 'Backup laden', 'set.close': 'Schließen',
+    'ach.unlockedLabel': 'Erfolg freigeschaltet!', 'ach.next': 'Nächster Erfolg',
+    'ach.still': 'Noch', 'ach.unlocked': 'Freigeschaltet', 'ach.unlockedOn': 'Freigeschaltet am {d}',
+    'ach.secretTitle': 'Versteckter Erfolg', 'ach.secretDesc': 'Ein versteckter Erfolg — finde selbst heraus, wie du ihn freischaltest! 🔍',
+    'ach.toGo': 'Noch {n} bis zum Erfolg!', 'ach.remShort': 'Noch {v}',
+    'ch.eyebrow': 'Challenge der Woche', 'ch.week': 'Woche {n}', 'ch.done': 'Geschafft!',
+    'ch.open': 'Scanne eine passende Karte!', 'ch.footOne': 'Noch 1 Tag · neue Challenge am Montag',
+    'ch.footMany': 'Noch {n} Tage · neue Challenge am Montag',
+    'ch.celebrate': 'Challenge gemeistert!', 'ch.celebrateDesc': 'Super gemacht! 🎉',
+    'set.complete': 'Komplett!', 'set.whichMissing': 'Welche fehlen? Tippen →',
+    'set.loading': 'Lade alle Karten des Sets…', 'set.loadErr': 'Konnte die Kartenliste nicht laden.',
+    'set.collected': '{n} gesammelt', 'set.missing': '{n} fehlen', 'set.cardMissing': '{name} fehlt noch',
+    'set.legend': 'Tippe „Suchen" bei einer fehlenden Karte, um sie zu finden. Farbige Karten besitzt du bereits.',
+    'pick.title': 'Edition wählen', 'pick.countMore': '<strong>{n}</strong> von {total} Treffern für „{name}"',
+    'pick.count': '<strong>{n}</strong> Treffer für „{name}" — tippe auf die richtige Edition:',
+    'pick.filterPh': 'Nach Set filtern, z.B. Base, Jungle…', 'pick.noFilter': 'Kein Set passt zum Filter.',
+    'pick.loadMore': '{n} weitere laden', 'pick.loading': 'Lädt…', 'pick.noPrice': 'kein Preis', 'common.cancel': 'Abbrechen',
+    'res.dup': 'Diese Karte ist bereits in deiner Sammlung ({name}, {set}).',
+    'res.trend': 'Cardmarket Trend', 'res.noPrice': 'Kein Preis', 'res.add': 'Zur Sammlung',
+    'res.wrongEd': 'Falsche Edition', 'res.skip': 'Überspringen', 'res.anyway': 'Trotzdem',
+    'res.otherEd': 'Andere Edition wählen', 'res.noCm': 'Kein Preis auf Cardmarket gefunden.',
+    'price.cmTitle': 'Cardmarket (EUR)', 'price.tpTitle': 'TCGplayer (USD)',
+    'price.trend': 'Trend', 'price.avg7': 'Ø 7 Tage', 'price.avg30': 'Ø 30 Tage', 'price.avgNow': 'Aktueller Ø',
+    'price.updated': 'Stand: {d}', 'price.market': 'Market', 'price.low': 'Low',
+    'modal.prices': 'Preise', 'modal.released': 'Erschienen: {d}', 'modal.changeEd': 'Falsche Edition? Andere wählen',
+    'modal.noCmData': 'Keine Cardmarket-Preisdaten verfügbar.',
+    'conf.title': 'Karte manuell eingeben', 'conf.hintFix': 'Name oder Nummer korrigieren falls nötig, dann suchen:',
+    'conf.hintNew': 'Pokémon-Name von der Karte eingeben (steht oben auf der Karte):',
+    'conf.nameLabel': 'Pokémon-Name *', 'conf.namePh': 'z.B. Mewtu',
+    'conf.numLabel': 'Kartennummer (optional)', 'conf.numPh': 'z.B. 025/165',
+    'conf.search': 'Suchen', 'conf.notInDb': 'Karte erkannt, aber nicht in der Datenbank. Name/Nummer ggf. korrigieren.',
+    'conf.noPoke': 'Kein Pokemon erkannt. Bitte Name manuell eingeben.',
+    'proc.wait': 'Bitte warten…', 'proc.recognising': 'Karte wird erkannt…', 'proc.claude': 'Claude analysiert das Bild',
+    'proc.searchEd': 'Suche Editionen…', 'proc.searchAll': 'Suche alle Editionen…', 'proc.searchDb': 'Durchsuche TCGdex-Datenbank',
+    'cam.start': 'Kamera startet…', 'cam.ready': 'Scharf — bereit!', 'cam.hold': 'Ruhig halten…',
+    'cam.align': 'Karte ausrichten…', 'cam.blurry': 'Unscharf — näher/Licht',
+    'cam.autoIn': 'Auto-Scan in {n}…', 'cam.autoNow': 'Auto-Scan…', 'cam.hint': 'Karte in den Rahmen legen · auf die Karte tippen für Schärfe',
+    'scan.btn': 'Scannen', 'cap.removed': '„{name}" entfernt', 'cap.restored': 'Wiederhergestellt!',
+    'undo.removed': 'Karte entfernt', 'undo.undo': 'Rückgängig',
+    'toast.added': '✓ Karte hinzugefügt!', 'toast.first': '🎉 Deine erste Karte!', 'toast.ten': '🏅 Schon 10 Karten!',
+    'toast.25': '🌟 25 Karten — stark!', 'toast.50': '🏆 50 Karten gesammelt!', 'toast.milestone': '🎊 {n} Karten!',
+    'toast.backupSaved': 'Backup gespeichert!', 'toast.collEmpty': 'Sammlung ist leer',
+    'toast.imported': '{n} Karten importiert!', 'toast.allPresent': 'Alle Karten bereits vorhanden',
+    'toast.backupReadErr': 'Backup konnte nicht gelesen werden', 'toast.edUpdated': 'Edition aktualisiert!',
+    'toast.nameSaved': 'Name gespeichert!', 'toast.nameRemoved': 'Name entfernt',
+    'toast.apiSaved': 'API-Key gespeichert!', 'toast.apiRemoved': 'API-Key entfernt',
+    'backup.never': '⚠️ Noch kein Backup erstellt', 'backup.today': 'Letztes Backup: heute', 'backup.daysAgo': 'Letztes Backup: vor {n} Tag(en)',
+    'err.noEditions': 'Keine Editionen für „{name}" gefunden. Anderen Namen versuchen?',
+    'err.noHits': 'Keine Treffer für „{name}". Anderen Namen oder Schreibweise versuchen.',
+    'err.searchFail': 'Suche fehlgeschlagen. Bitte versuche es erneut.',
+    'err.saveFull': 'Speichern fehlgeschlagen — Speicher voll?', 'err.badFormat': 'Ungültiges Format',
+    'err.badJson': 'Ungültige JSON-Antwort', 'err.apiInvalid': 'API-Key ungültig. Bitte unter console.anthropic.com prüfen.',
+    'err.credits': 'Kein Guthaben auf dem Anthropic-Konto. Lade unter console.anthropic.com → Billing Guthaben auf, oder nutze einfach die manuelle Suche unten — die funktioniert kostenlos.',
+    'err.recognFail': 'Erkennung fehlgeschlagen. Bitte Name manuell eingeben.', 'err.noPokeRecog': 'Kein Pokémon erkannt',
+    'err.camDenied': 'Kamerazugriff verweigert. Bitte in den Browser-Einstellungen erlauben.',
+    'err.camUnavail': 'Kamera nicht verfügbar — bitte manuell suchen.', 'common.back': 'Zurück',
+    'err.emptyImage': 'Leeres Bild — bitte erneut scannen', 'err.tooMany': 'Zu viele Anfragen. Bitte kurz warten und erneut versuchen.',
+    'err.reqRejected': 'Anfrage abgelehnt: {detail}', 'err.httpErr': 'Fehler {status}: {detail}'
+
+  },
+  en: {
+    'topbar.subDefault': 'Your card collection',
+    'stats.cards': 'Cards', 'stats.total': 'Total value',
+    'section.play': 'Play', 'section.setProgress': 'Set progress', 'section.achievements': 'Achievements',
+    'scan.title': 'Scan card', 'scan.sub': 'Open camera → take a photo → pick edition',
+    'search.placeholder': 'Search card name, e.g. Mewtwo…',
+    'coll.title': 'My collection', 'coll.searchPlaceholder': 'Search your collection…', 'coll.filter': 'Filter',
+    'coll.cardsSuffix': 'cards', 'coll.new': 'NEW',
+    'sort.newest': 'Newest first', 'sort.priceDesc': 'Value: high → low', 'sort.priceAsc': 'Value: low → high',
+    'sort.name': 'Name (A–Z)', 'sort.release': 'Release date',
+    'empty.none': 'No cards in your collection yet.', 'empty.scanFirst': 'Scan your first card!',
+    'empty.noFilter': 'No cards match your search/filter.', 'empty.noCat': 'No cards in this category.',
+    'ob.title': 'Welcome to PokéVault!', 'ob.lead': 'How to add your first card:',
+    'ob.step1': '<strong>Scan a card</strong> — open the camera, hold the card in the frame, it captures by itself.',
+    'ob.step2': '<strong>Or type a name</strong> — search works right away, completely <strong>without an API key</strong>.',
+    'ob.step3': 'Keep collecting — <strong>achievements & weekly challenges</strong> unlock as you go.',
+    'ob.cta': "Let's go!",
+    'set.title': 'Settings', 'set.lang': 'Language', 'set.langSub': 'Language of the app interface.',
+    'set.nameTitle': 'Collector name (optional)',
+    'set.nameSub': 'Shown at the top of the home screen. Leave empty for the default.',
+    'set.namePh': 'e.g. Lukas',
+    'set.apiTitle': 'Anthropic API key (optional)',
+    'set.apiSub': 'For automatic card recognition via the camera. Free at <strong>console.anthropic.com</strong>, stored only on this device. Without a key, manual search works fully.',
+    'set.apiSaved': 'Key saved', 'set.save': 'Save',
+    'set.scan': 'Scan', 'set.auto': 'Auto-capture', 'set.autoSub': 'Fires when the card is sharp & steady in the frame.',
+    'set.backup': 'Back up collection', 'set.backupSub': 'Download a backup so nothing gets lost.',
+    'set.backupDl': 'Download backup', 'set.backupLoad': 'Load backup', 'set.close': 'Close',
+    'ach.unlockedLabel': 'Achievement unlocked!', 'ach.next': 'Next achievement',
+    'ach.still': '', 'ach.unlocked': 'Unlocked', 'ach.unlockedOn': 'Unlocked on {d}',
+    'ach.secretTitle': 'Hidden achievement', 'ach.secretDesc': 'A hidden achievement — figure out how to unlock it yourself! 🔍',
+    'ach.toGo': '{n} more to unlock!', 'ach.remShort': '{v} left',
+    'ch.eyebrow': 'Weekly challenge', 'ch.week': 'Week {n}', 'ch.done': 'Done!',
+    'ch.open': 'Scan a matching card!', 'ch.footOne': '1 day left · new challenge on Monday',
+    'ch.footMany': '{n} days left · new challenge on Monday',
+    'ch.celebrate': 'Challenge complete!', 'ch.celebrateDesc': 'Well done! 🎉',
+    'set.complete': 'Complete!', 'set.whichMissing': 'Which are missing? Tap →',
+    'set.loading': 'Loading all cards in the set…', 'set.loadErr': 'Could not load the card list.',
+    'set.collected': '{n} collected', 'set.missing': '{n} missing', 'set.cardMissing': '{name} still missing',
+    'set.legend': 'Tap “Search” on a missing card to find it. Coloured cards you already own.',
+    'pick.title': 'Pick edition', 'pick.countMore': '<strong>{n}</strong> of {total} matches for “{name}”',
+    'pick.count': '<strong>{n}</strong> matches for “{name}” — tap the right edition:',
+    'pick.filterPh': 'Filter by set, e.g. Base, Jungle…', 'pick.noFilter': 'No set matches the filter.',
+    'pick.loadMore': 'Load {n} more', 'pick.loading': 'Loading…', 'pick.noPrice': 'no price', 'common.cancel': 'Cancel',
+    'res.dup': 'This card is already in your collection ({name}, {set}).',
+    'res.trend': 'Cardmarket trend', 'res.noPrice': 'No price', 'res.add': 'Add to collection',
+    'res.wrongEd': 'Wrong edition', 'res.skip': 'Skip', 'res.anyway': 'Add anyway',
+    'res.otherEd': 'Pick another edition', 'res.noCm': 'No Cardmarket price found.',
+    'price.cmTitle': 'Cardmarket (EUR)', 'price.tpTitle': 'TCGplayer (USD)',
+    'price.trend': 'Trend', 'price.avg7': 'Avg 7d', 'price.avg30': 'Avg 30d', 'price.avgNow': 'Current avg',
+    'price.updated': 'As of: {d}', 'price.market': 'Market', 'price.low': 'Low',
+    'modal.prices': 'Prices', 'modal.released': 'Released: {d}', 'modal.changeEd': 'Wrong edition? Pick another',
+    'modal.noCmData': 'No Cardmarket price data available.',
+    'conf.title': 'Enter card manually', 'conf.hintFix': 'Correct the name or number if needed, then search:',
+    'conf.hintNew': 'Type the Pokémon name from the card (printed at the top):',
+    'conf.nameLabel': 'Pokémon name *', 'conf.namePh': 'e.g. Mewtwo',
+    'conf.numLabel': 'Card number (optional)', 'conf.numPh': 'e.g. 025/165',
+    'conf.search': 'Search', 'conf.notInDb': 'Card recognised but not in the database. Adjust name/number if needed.',
+    'conf.noPoke': 'No Pokémon recognised. Please enter the name manually.',
+    'proc.wait': 'Please wait…', 'proc.recognising': 'Recognising card…', 'proc.claude': 'Claude is analysing the image',
+    'proc.searchEd': 'Searching editions…', 'proc.searchAll': 'Searching all editions…', 'proc.searchDb': 'Searching the TCGdex database',
+    'cam.start': 'Starting camera…', 'cam.ready': 'Sharp — ready!', 'cam.hold': 'Hold steady…',
+    'cam.align': 'Align the card…', 'cam.blurry': 'Blurry — closer/light',
+    'cam.autoIn': 'Auto-scan in {n}…', 'cam.autoNow': 'Auto-scan…', 'cam.hint': 'Place the card in the frame · tap the card to focus',
+    'scan.btn': 'Scan', 'cap.removed': '“{name}” removed', 'cap.restored': 'Restored!',
+    'undo.removed': 'Card removed', 'undo.undo': 'Undo',
+    'toast.added': '✓ Card added!', 'toast.first': '🎉 Your first card!', 'toast.ten': '🏅 Already 10 cards!',
+    'toast.25': '🌟 25 cards — nice!', 'toast.50': '🏆 50 cards collected!', 'toast.milestone': '🎊 {n} cards!',
+    'toast.backupSaved': 'Backup saved!', 'toast.collEmpty': 'Collection is empty',
+    'toast.imported': '{n} cards imported!', 'toast.allPresent': 'All cards already present',
+    'toast.backupReadErr': 'Could not read the backup', 'toast.edUpdated': 'Edition updated!',
+    'toast.nameSaved': 'Name saved!', 'toast.nameRemoved': 'Name removed',
+    'toast.apiSaved': 'API key saved!', 'toast.apiRemoved': 'API key removed',
+    'backup.never': '⚠️ No backup yet', 'backup.today': 'Last backup: today', 'backup.daysAgo': 'Last backup: {n} day(s) ago',
+    'err.noEditions': 'No editions found for “{name}”. Try another name?',
+    'err.noHits': 'No matches for “{name}”. Try another name or spelling.',
+    'err.searchFail': 'Search failed. Please try again.',
+    'err.saveFull': 'Saving failed — storage full?', 'err.badFormat': 'Invalid format',
+    'err.badJson': 'Invalid JSON response', 'err.apiInvalid': 'API key invalid. Please check at console.anthropic.com.',
+    'err.credits': 'No credit on the Anthropic account. Top up at console.anthropic.com → Billing, or just use manual search below — it is free.',
+    'err.recognFail': 'Recognition failed. Please enter the name manually.', 'err.noPokeRecog': 'No Pokémon recognised',
+    'err.camDenied': 'Camera access denied. Please allow it in your browser settings.',
+    'err.camUnavail': 'Camera unavailable — please search manually.', 'common.back': 'Back',
+    'err.emptyImage': 'Empty image — please scan again', 'err.tooMany': 'Too many requests. Please wait a moment and try again.',
+    'err.reqRejected': 'Request rejected: {detail}', 'err.httpErr': 'Error {status}: {detail}'
+
+  }
+};
+let LANG = localStorage.getItem('pokevault_lang') ||
+  ((navigator.language || 'de').toLowerCase().startsWith('en') ? 'en' : 'de');
+
+function t(key, vars) {
+  let s = (STRINGS[LANG] && STRINGS[LANG][key]) || STRINGS.de[key] || key;
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+
+// Fill static elements tagged with data-i18n / -ph (placeholder) / -html (innerHTML)
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+}
+
+function setLang(l) {
+  if (l !== 'de' && l !== 'en') return;
+  LANG = l;
+  localStorage.setItem('pokevault_lang', l);
+  applyI18n();
+  // Re-render dynamic views that build strings in JS
+  updateStats(); renderCollection(); updateTopbarGreeting(); updateBackupNote();
+  if (document.querySelector('.settings-head')) openSettings();
+}
+
+// EN translations for the structured Achievement/Challenge arrays (keyed by id).
+const DYN_EN = {
+  ch: {
+    letterB:['Letter B','Find a card whose name starts with \u201CB\u201D.'],
+    over5:['Over \u20AC5','A card worth more than \u20AC5.'],
+    fire:['Fire Pok\u00e9mon','Scan a Fire-type Pok\u00e9mon.'],
+    holo:['Shiny','A shiny holo card.'],
+    hp130:['More than 130 HP','A card with more than 130 HP.'],
+    water:['Water Pok\u00e9mon','Scan a Water-type Pok\u00e9mon.'],
+    letterP:['Letter P','Find a card whose name starts with \u201CP\u201D.'],
+    num100:['Number over 100','A card with a number greater than 100.'],
+    rare:['Rare card','A card with a \u201CRare\u201D rarity.'],
+    vintage:['Oldie','A card from a set released before 2015.'],
+    lightning:['Electric Pok\u00e9mon','Scan a Lightning-type Pok\u00e9mon.'],
+    over20:['Valuable: over \u20AC20','An especially valuable card over \u20AC20.']
+  },
+  ach: {
+    first:['First card','Scanned your very first card'],
+    ten:['Collector','Collected 10 cards'],
+    fifty:['Pro collector','Collected 50 cards'],
+    hundred:['Card master','Collected 100 cards'],
+    firstHolo:['Shiny!','Found a holo card'],
+    firstRare:['Rare find','Found a rare card'],
+    value10:['Valuable','Owned a card over \u20AC10'],
+    value50:['Treasury','Owned a card over \u20AC50'],
+    value100:['Gem','Owned a card over \u20AC100'],
+    totalValue100:['Treasurer','Collection worth over \u20AC100'],
+    threeSets:['Variety','Cards from 3 different sets'],
+    fiveSets:['Explorer','Cards from 5 different sets'],
+    rainbow:['Rainbow','Cards of 5 different rarities'],
+    vintage:['Time travel','A card from a set before 2010'],
+    setComplete:['Set complete!','Completed a whole set'],
+    nightOwl:['Night owl','Added a card in the dead of night (0\u20135)'],
+    hoarder:['Hoarder','Added 5 cards in a single day'],
+    twins:['Doppelg\u00e4nger','The same card twice in your collection']
+  }
+};
+function chT(o){ const e=DYN_EN.ch[o.id]; return (LANG==='en'&&e)?e[0]:o.title; }
+function chD(o){ const e=DYN_EN.ch[o.id]; return (LANG==='en'&&e)?e[1]:o.desc; }
+function achT(o){ const e=DYN_EN.ach[o.id]; return (LANG==='en'&&e)?e[0]:o.title; }
+function achD(o){ const e=DYN_EN.ach[o.id]; return (LANG==='en'&&e)?e[1]:o.desc; }
+
+// ═══════════════════════════════════════════════════════
 // PERSISTENCE  — stable UUIDs instead of array indices
 // ═══════════════════════════════════════════════════════
 function uid() {
@@ -791,14 +1042,14 @@ function loadCollection() {
 
 function save() {
   try { localStorage.setItem('pokevault_v6', JSON.stringify(collection)); }
-  catch (e) { showError('Speichern fehlgeschlagen — Speicher voll?'); }
+  catch (e) { showError(t('err.saveFull')); }
 }
 
 // ═══════════════════════════════════════════════════════
 // BACKUP — export / import so a cleared cache never loses data
 // ═══════════════════════════════════════════════════════
 function exportCollection() {
-  if (!collection.length) { showToast('Sammlung ist leer'); return; }
+  if (!collection.length) { showToast(t('toast.collEmpty')); return; }
   const payload = {
     app: 'PokéVault',
     version: 1,
@@ -818,7 +1069,7 @@ function exportCollection() {
   URL.revokeObjectURL(url);
   localStorage.setItem('pokevault_lastBackup', Date.now().toString());
   updateBackupNote();
-  showToast('Backup gespeichert!');
+  showToast(t('toast.backupSaved'));
 }
 
 function importCollection(event) {
@@ -829,7 +1080,7 @@ function importCollection(event) {
     try {
       const data = JSON.parse(e.target.result);
       const imported = Array.isArray(data) ? data : data.cards;
-      if (!Array.isArray(imported)) throw new Error('Ungültiges Format');
+      if (!Array.isArray(imported)) throw new Error(t('err.badFormat'));
 
       // Merge: skip cards already present (by uid), keep everything else
       const existingUids = new Set(collection.map(c => c.uid));
@@ -849,9 +1100,9 @@ function importCollection(event) {
       // (silent — checkAchievements shows no popup; it just unlocks + re-renders)
       checkAchievements(); renderAchievements();
       renderWeeklyChallenge(); checkChallengeProgress(false);
-      showToast(added ? `${added} Karten importiert!` : 'Alle Karten bereits vorhanden');
+      showToast(added ? t('toast.imported', { n: added }) : t('toast.allPresent'));
     } catch (err) {
-      showToast('Backup konnte nicht gelesen werden');
+      showToast(t('toast.backupReadErr'));
     }
   };
   reader.readAsText(file);
@@ -863,12 +1114,12 @@ function updateBackupNote() {
   if (!note) return;
   const last = localStorage.getItem('pokevault_lastBackup');
   if (!last) {
-    note.textContent = collection.length >= 5 ? '⚠️ Noch kein Backup erstellt' : '';
+    note.textContent = collection.length >= 5 ? t('backup.never') : '';
     note.className = 'backup-note' + (collection.length >= 5 ? ' warn' : '');
     return;
   }
   const days = Math.floor((Date.now() - parseInt(last)) / 86400000);
-  note.textContent = days === 0 ? 'Letztes Backup: heute' : `Letztes Backup: vor ${days} Tag(en)`;
+  note.textContent = days === 0 ? t('backup.today') : t('backup.daysAgo', { n: days });
   note.className = 'backup-note';
 }
 
@@ -883,8 +1134,8 @@ function getCollectorName() { return (localStorage.getItem('pokevault_collectorN
 function saveCollectorName() {
   const el = document.getElementById('collectorNameInput');
   const name = el ? el.value.trim().slice(0, 24) : '';
-  if (name) { localStorage.setItem('pokevault_collectorName', name); showToast('Name gespeichert!'); }
-  else { localStorage.removeItem('pokevault_collectorName'); showToast('Name entfernt'); }
+  if (name) { localStorage.setItem('pokevault_collectorName', name); showToast(t('toast.nameSaved')); }
+  else { localStorage.removeItem('pokevault_collectorName'); showToast(t('toast.nameRemoved')); }
   updateTopbarGreeting();
   if (document.querySelector('.settings-head')) openSettings();   // refresh hint if open
 }
@@ -895,7 +1146,8 @@ function updateTopbarGreeting() {
   const el = document.getElementById('topbarSub');
   if (!el) return;
   const name = getCollectorName();
-  if (!name) { el.textContent = 'Deine Karten-Sammlung'; return; }
+  if (!name) { el.textContent = t('topbar.subDefault'); return; }
+  if (LANG === 'en') { el.textContent = (/s$/i.test(name) ? `${name}'` : `${name}'s`) + ' collection'; return; }
   const poss = /[sxz]$/i.test(name) ? `${name}'` : `${name}s`;
   el.textContent = `${poss} Sammlung`;
 }
@@ -903,8 +1155,8 @@ function updateTopbarGreeting() {
 function saveApiKey() {
   const el = document.getElementById('apiKeyInput');
   const k = el ? el.value.trim() : '';
-  if (k) { localStorage.setItem('pokevault_apikey', k); showToast('API-Key gespeichert!'); }
-  else { localStorage.removeItem('pokevault_apikey'); showToast('API-Key entfernt'); }
+  if (k) { localStorage.setItem('pokevault_apikey', k); showToast(t('toast.apiSaved')); }
+  else { localStorage.removeItem('pokevault_apikey'); showToast(t('toast.apiRemoved')); }
   // Refresh the settings view if it's open (updates the "saved" hint)
   if (document.querySelector('.settings-head')) openSettings();
 }
@@ -913,47 +1165,56 @@ function saveApiKey() {
 function openSettings() {
   const keySet = !!getKey();
   document.getElementById('modalContent').innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
-    <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> Einstellungen</div>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> ${esc(t('set.title'))}</div>
 
     <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-user" aria-hidden="true"></i> Sammler-Name (optional)</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Wird oben auf dem Start-Bildschirm angezeigt (z.&nbsp;B. „Lukas&nbsp;Sammlung"). Leer lassen für die Standard-Anzeige.</div>
-      <input type="text" id="collectorNameInput" class="settings-input" style="font-family:inherit" placeholder="z.B. Lukas" autocomplete="off" maxlength="24" value="${esc(getCollectorName())}"/>
-      <button class="btn-save-api" onclick="saveCollectorName()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> Anthropic API-Key (optional)</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Für die automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong>, wird nur lokal gespeichert. Ohne Key funktioniert die manuelle Suche vollständig.</div>
-      <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" value="${esc(getKey())}"/>
-      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
-      ${keySet ? '<div class="settings-row-sub" style="color:var(--c-brand-d);margin-top:8px"><i class="ti ti-circle-check" aria-hidden="true"></i> Key gespeichert</div>' : ''}
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-camera" aria-hidden="true"></i> Scan</div>
-      <div class="settings-row">
-        <div>
-          <div class="settings-row-text">Auto-Auslöser</div>
-          <div class="settings-row-sub">Löst aus, wenn die Karte scharf &amp; ruhig im Rahmen liegt.</div>
-        </div>
-        <button class="switch ${autoCaptureEnabled ? 'on' : ''}" role="switch" aria-checked="${autoCaptureEnabled}" aria-label="Auto-Auslöser umschalten" onclick="toggleAutoCaptureSetting(this)"></button>
+      <div class="settings-group-title"><i class="ti ti-language" aria-hidden="true"></i> ${esc(t('set.lang'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.langSub'))}</div>
+      <div class="lang-choice">
+        <button class="lang-opt ${LANG === 'de' ? 'on' : ''}" onclick="setLang('de')">Deutsch</button>
+        <button class="lang-opt ${LANG === 'en' ? 'on' : ''}" onclick="setLang('en')">English</button>
       </div>
     </div>
 
     <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-shield-check" aria-hidden="true"></i> Sammlung sichern</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Lade ein Backup herunter, damit nichts verloren geht.</div>
+      <div class="settings-group-title"><i class="ti ti-user" aria-hidden="true"></i> ${esc(t('set.nameTitle'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.nameSub'))}</div>
+      <input type="text" id="collectorNameInput" class="settings-input" style="font-family:inherit" placeholder="${esc(t('set.namePh'))}" autocomplete="off" maxlength="24" value="${esc(getCollectorName())}"/>
+      <button class="btn-save-api" onclick="saveCollectorName()"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('set.save'))}</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> ${esc(t('set.apiTitle'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${t('set.apiSub')}</div>
+      <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" value="${esc(getKey())}"/>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('set.save'))}</button>
+      ${keySet ? `<div class="settings-row-sub" style="color:var(--c-brand-d);margin-top:8px"><i class="ti ti-circle-check" aria-hidden="true"></i> ${esc(t('set.apiSaved'))}</div>` : ''}
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-camera" aria-hidden="true"></i> ${esc(t('set.scan'))}</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-text">${esc(t('set.auto'))}</div>
+          <div class="settings-row-sub">${esc(t('set.autoSub'))}</div>
+        </div>
+        <button class="switch ${autoCaptureEnabled ? 'on' : ''}" role="switch" aria-checked="${autoCaptureEnabled}" aria-label="${esc(t('set.auto'))}" onclick="toggleAutoCaptureSetting(this)"></button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-shield-check" aria-hidden="true"></i> ${esc(t('set.backup'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.backupSub'))}</div>
       <div class="backup-btns">
-        <button class="backup-btn primary" onclick="exportCollection()"><i class="ti ti-download" aria-hidden="true"></i> Backup herunterladen</button>
-        <button class="backup-btn" onclick="document.getElementById('importFile').click()"><i class="ti ti-upload" aria-hidden="true"></i> Backup laden</button>
+        <button class="backup-btn primary" onclick="exportCollection()"><i class="ti ti-download" aria-hidden="true"></i> ${esc(t('set.backupDl'))}</button>
+        <button class="backup-btn" onclick="document.getElementById('importFile').click()"><i class="ti ti-upload" aria-hidden="true"></i> ${esc(t('set.backupLoad'))}</button>
       </div>
       <div class="backup-note" id="lastBackupNote"></div>
     </div>
 
     <div class="settings-version">PokéVault ${esc(APP_VERSION)}</div>
-    <button class="btn-close-modal" style="margin-top:12px" onclick="closeModalDirect()">Schließen</button>
+    <button class="btn-close-modal" style="margin-top:12px" onclick="closeModalDirect()">${esc(t('set.close'))}</button>
   `;
   document.getElementById('modalBg').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1046,7 +1307,7 @@ function showError(msg) {
   // Inline error in scan section
   const el = document.getElementById('scanResult');
   el.innerHTML = `<div class="error-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>${esc(msg)}</span></div>
-    <button class="btn-secondary" style="width:100%;margin-top:8px" onclick="resetScanUI()">Zurück</button>`;
+    <button class="btn-secondary" style="width:100%;margin-top:8px" onclick="resetScanUI()">${esc(t('common.back'))}</button>`;
   el.style.display = 'block';
   document.getElementById('scanTrigger').style.display = 'none';
 }
@@ -1058,7 +1319,7 @@ function updateStats() {
   const total = collection.reduce((s, c) => s + (c.price || 0), 0);
   document.getElementById('totalVal').textContent = '€' + total.toFixed(2);
   document.getElementById('cardCount').textContent = collection.length;
-  document.getElementById('collCount').textContent = collection.length + ' Karten';
+  document.getElementById('collCount').textContent = collection.length + ' ' + t('coll.cardsSuffix');
   updateBackupNote();
 }
 
@@ -1259,12 +1520,12 @@ function renderSetProgress() {
     return `<div class="set-card ${complete ? 'complete' : ''}" ${clickable}>
       <div class="set-card-head">
         <span class="set-name">${esc(s.name)}</span>
-        ${complete ? '<span class="set-complete-badge"><i class="ti ti-circle-check" aria-hidden="true"></i> Komplett!</span>' : arrow}
+        ${complete ? `<span class="set-complete-badge"><i class="ti ti-circle-check" aria-hidden="true"></i> ${esc(t('set.complete'))}</span>` : arrow}
       </div>
       ${s.serie ? `<div class="set-serie">${esc(s.serie)}</div>` : ''}
       <div class="set-bar-track"><div class="set-bar-fill" style="width:${pct}%"></div></div>
-      <div class="set-count">${owned} / ${total} Karten${s.total ? ` · ${pct}%` : ''}</div>
-      ${s.total && !complete ? `<div class="set-card-cta">Welche fehlen? Tippen →</div>` : ''}
+      <div class="set-count">${owned} / ${total} ${esc(t('coll.cardsSuffix'))}${s.total ? ` · ${pct}%` : ''}</div>
+      ${s.total && !complete ? `<div class="set-card-cta">${esc(t('set.whichMissing'))}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -1378,14 +1639,14 @@ async function openSetDetail(setId) {
 
   // Slow path (cold cache): show a spinner while we fetch this one
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="set-detail-head">
       <div class="set-detail-title">${esc(setName)}</div>
       ${setSerie ? `<div class="set-detail-serie">${esc(setSerie)}</div>` : ''}
     </div>
     <div style="text-align:center;padding:40px 16px;color:var(--c-n-888)">
       <i class="ti ti-loader-2" style="font-size:32px;animation:spin 1s linear infinite;display:block;margin-bottom:10px;color:#1D9E75"></i>
-      Lade alle Karten des Sets…
+      ${esc(t('set.loading'))}
     </div>`;
 
   try {
@@ -1394,7 +1655,7 @@ async function openSetDetail(setId) {
   } catch (e) {
     const box = modal.querySelector('div[style*="text-align:center"]');
     if (box) box.innerHTML =
-      '<i class="ti ti-alert-circle" style="font-size:28px;color:#A32D2D;display:block;margin-bottom:8px"></i>Konnte die Kartenliste nicht laden.';
+      `<i class="ti ti-alert-circle" style="font-size:28px;color:#A32D2D;display:block;margin-bottom:8px"></i>${esc(t('set.loadErr'))}`;
   }
 }
 
@@ -1420,7 +1681,7 @@ function renderSetDetailModal(modal, setName, setSerie, ownedNumbers, cards) {
         <div class="setdetail-num">#${esc(c.localId)}</div>
       </div>`;
     }
-    return `<div class="setdetail-card missing" title="${esc(c.name)} fehlt noch">
+    return `<div class="setdetail-card missing" title="${esc(t('set.cardMissing', { name: c.name }))}">
       <div class="setdetail-missing-inner">
         <i class="ti ti-help-circle" aria-hidden="true"></i>
         <span>#${esc(c.localId)}</span>
@@ -1429,18 +1690,18 @@ function renderSetDetailModal(modal, setName, setSerie, ownedNumbers, cards) {
   }).join('');
 
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="set-detail-head">
       <div class="set-detail-title">${esc(setName)}</div>
       ${setSerie ? `<div class="set-detail-serie">${esc(setSerie)}</div>` : ''}
       <div class="set-detail-stats">
-        <span class="setstat have"><i class="ti ti-check" aria-hidden="true"></i> ${ownedCount} gesammelt</span>
-        <span class="setstat missing"><i class="ti ti-help-circle" aria-hidden="true"></i> ${missingCount} fehlen</span>
+        <span class="setstat have"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('set.collected', { n: ownedCount }))}</span>
+        <span class="setstat missing"><i class="ti ti-help-circle" aria-hidden="true"></i> ${esc(t('set.missing', { n: missingCount }))}</span>
       </div>
     </div>
-    <div class="setdetail-legend">Tippe „Suchen" bei einer fehlenden Karte, um sie zu finden. Farbige Karten besitzt du bereits.</div>
+    <div class="setdetail-legend">${esc(t('set.legend'))}</div>
     <div class="setdetail-grid">${gridHtml}</div>
-    <button class="btn-close-modal" style="margin-top:14px" onclick="closeModalDirect()">Schließen</button>
+    <button class="btn-close-modal" style="margin-top:14px" onclick="closeModalDirect()">${esc(t('set.close'))}</button>
   `;
 }
 
@@ -1464,11 +1725,11 @@ function renderCollection() {
   if (!cards.length) {
     let emptyMsg;
     if (collection.length === 0) {
-      emptyMsg = '<i class="ti ti-pokeball" aria-hidden="true"></i><p>Noch keine Karten in deiner Sammlung.<br><strong>Scanne deine erste Karte!</strong></p>';
+      emptyMsg = `<i class="ti ti-pokeball" aria-hidden="true"></i><p>${t('empty.none')}<br><strong>${t('empty.scanFirst')}</strong></p>`;
     } else if (collQuery || activeFilterCount() > 0) {
-      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten passen zu Suche/Filter.</p>';
+      emptyMsg = `<i class="ti ti-filter-off" aria-hidden="true"></i><p>${t('empty.noFilter')}</p>`;
     } else {
-      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten in dieser Kategorie.</p>';
+      emptyMsg = `<i class="ti ti-filter-off" aria-hidden="true"></i><p>${t('empty.noCat')}</p>`;
     }
     grid.innerHTML = `<div class="empty-state" role="listitem">${emptyMsg}</div>`;
     maybeShowOnboarding();
@@ -1504,11 +1765,11 @@ function cardGridHtml(c, isNewest) {
   const ph = `<div class="coll-thumb-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceHtml = c.price
     ? `<div class="coll-price">${fmtPrice(c.price)}</div>`
-    : `<div class="coll-price no-price">Kein Preis</div>`;
+    : `<div class="coll-price no-price">${esc(t('res.noPrice'))}</div>`;
   const rel = c.releaseDate
     ? `<div class="coll-release"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px" aria-hidden="true"></i> ${esc(c.releaseDate)}</div>`
     : '';
-  const newBadge = isNewest ? `<span class="coll-badge-new">NEU</span>` : '';
+  const newBadge = isNewest ? `<span class="coll-badge-new">${esc(t('coll.new'))}</span>` : '';
   return `<article class="coll-card ${isNewest ? 'newest' : ''}" onclick="openModal('${esc(c.uid)}')" role="listitem" aria-label="${esc(c.name)}, ${esc(c.set||'')}">
     ${newBadge}
     ${img}${ph}
@@ -1530,7 +1791,7 @@ function cardListHtml(c, isNewest) {
   const priceHtml = c.price
     ? `<div class="coll-price">${fmtPrice(c.price)}</div>`
     : `<div class="coll-price no-price">—</div>`;
-  const newBadge = isNewest ? `<span class="coll-badge-new">NEU</span>` : '';
+  const newBadge = isNewest ? `<span class="coll-badge-new">${esc(t('coll.new'))}</span>` : '';
   return `<article class="coll-card ${isNewest ? 'newest' : ''}" onclick="openModal('${esc(c.uid)}')" role="listitem" aria-label="${esc(c.name)}, ${esc(c.set||'')}">
     ${img}${ph}
     <div class="list-info">
@@ -1645,7 +1906,7 @@ function removeCard(uid) {
   deletedIndex = idx;
   collection.splice(idx, 1);
   save(); updateStats(); renderCollection();
-  showDeleteToast(`„${deletedCard.name}" entfernt`);
+  showDeleteToast(t('cap.removed', { name: deletedCard.name }));
 }
 
 function undoDelete() {
@@ -1655,7 +1916,7 @@ function undoDelete() {
   deletedCard = null; deletedIndex = -1;
   save(); updateStats(); renderCollection();
   document.getElementById('undoBar').classList.remove('show');
-  showToast('Wiederhergestellt!');
+  showToast(t('cap.restored'));
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1670,18 +1931,18 @@ function openModal(uid) {
     : '';
   const ph = `<div class="modal-img-ph" style="${c.image?'display:none':''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const serieSet = c.serie ? `${esc(c.serie)} › ${esc(c.set)}` : esc(c.set || '—');
-  const rel = c.releaseDate ? `<div class="modal-release"><i class="ti ti-calendar" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Erschienen: ${esc(c.releaseDate)}</div>` : '';
+  const rel = c.releaseDate ? `<div class="modal-release"><i class="ti ti-calendar" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> ${esc(t('modal.released', { d: c.releaseDate }))}</div>` : '';
   const num = c.cardNumber ? ` <span style="font-size:13px;color:var(--c-n-aaa);font-weight:400">#${esc(c.cardNumber)}</span>` : '';
 
-  let priceHtml = '<p style="font-size:13px;color:var(--c-n-aaa)">Keine Cardmarket-Preisdaten verfügbar.</p>';
+  let priceHtml = `<p style="font-size:13px;color:var(--c-n-aaa)">${esc(t('modal.noCmData'))}</p>`;
   if (c.pricing?.cardmarket) {
     const cm = c.pricing.cardmarket;
     const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
-    const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+    const upd = cm.updated ? `<div class="price-updated">${esc(t('price.updated', { d: fmtDate(cm.updated) }))}</div>` : '';
     priceHtml = `<div class="price-block">
-      <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+      <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> ${esc(t('price.cmTitle'))}</div>
       <div class="price-grid">
-        ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+        ${row(esc(t('price.trend')), cm.trend)}${row(esc(t('price.avg7')), cm.avg7)}${row(esc(t('price.avg30')), cm.avg30)}${row(esc(t('price.avgNow')), cm.avg)}
       </div>${upd}
     </div>`;
   }
@@ -1689,13 +1950,13 @@ function openModal(uid) {
     const n = c.pricing.tcgplayer.normal;
     const row = (l, v) => `<div class="price-item"><div class="price-item-label">${l}</div><div class="price-item-val ${v==null?'muted':''}">${v != null ? '$' + parseFloat(v).toFixed(2) : '—'}</div></div>`;
     priceHtml += `<div class="price-block" style="margin-top:8px">
-      <div class="price-block-title"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:12px"></i> TCGplayer (USD)</div>
-      <div class="price-grid">${row('Market', n.marketPrice)}${row('Low', n.lowPrice)}</div>
+      <div class="price-block-title"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:12px"></i> ${esc(t('price.tpTitle'))}</div>
+      <div class="price-grid">${row(esc(t('price.market')), n.marketPrice)}${row(esc(t('price.low')), n.lowPrice)}</div>
     </div>`;
   }
 
   document.getElementById('modalContent').innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Modal schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="modal-img-wrap">
       ${img}${ph}
       <div class="modal-card-info">
@@ -1705,13 +1966,13 @@ function openModal(uid) {
         ${c.rarity ? `<span class="rarity-pill">${esc(c.rarity)}</span>` : ''}
       </div>
     </div>
-    <div class="modal-section-title">Preise</div>
+    <div class="modal-section-title">${esc(t('modal.prices'))}</div>
     ${priceHtml}
     <div class="modal-actions">
       <button class="btn-change-edition" onclick="closeModalDirect();changeEdition('${esc(uid)}')">
-        <i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition? Andere wählen
+        <i class="ti ti-refresh" aria-hidden="true"></i> ${esc(t('modal.changeEd'))}
       </button>
-      <button class="btn-close-modal" onclick="closeModalDirect()">Schließen</button>
+      <button class="btn-close-modal" onclick="closeModalDirect()">${esc(t('set.close'))}</button>
     </div>
   `;
   document.getElementById('modalBg').classList.add('open');
@@ -1730,7 +1991,7 @@ async function changeEdition(uid) {
   const c = collection.find(x => x.uid === uid);
   if (!c) return;
   editingCollId = uid;
-  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  showProcessing(t('proc.searchAll'), t('proc.searchDb'));
   document.getElementById('scanTrigger').style.display = 'none';
   try {
     const result = await searchAllCards(c.name, '');
@@ -1739,7 +2000,7 @@ async function changeEdition(uid) {
   } catch (e) {
     hideProcessing();
     document.getElementById('scanTrigger').style.display = 'block';
-    showError('Suche fehlgeschlagen. Bitte versuche es erneut.');
+    showError(t('err.searchFail'));
   }
 }
 
@@ -1759,7 +2020,7 @@ async function startScan() {
   motionHistory = [];
   scanArmedAt = Date.now();    // start the arming delay
   updateAutoToggleLabel();
-  setCamStatus('starting', 'Kamera startet…');
+  setCamStatus('starting', t('cam.start'));
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
@@ -1797,8 +2058,8 @@ async function startScan() {
     document.body.style.overflow = '';   // unlock page scroll on failure
     document.getElementById('scanTrigger').style.display = 'block';
     const msg = e.name === 'NotAllowedError'
-      ? 'Kamerazugriff verweigert. Bitte in den Browser-Einstellungen erlauben.'
-      : 'Kamera nicht verfügbar — bitte manuell suchen.';
+      ? t('err.camDenied')
+      : t('err.camUnavail');
     showError(msg);
   }
 }
@@ -1924,8 +2185,8 @@ function updateSharpnessUI(score, motion) {
   if (!isGood) {
     goodSince = null;
     if (cardback) cardback.classList.remove('hidden');
-    if (avg > 35) setCamStatus('', 'Karte ausrichten…');
-    else setCamStatus('blurry', 'Unscharf — näher/Licht');
+    if (avg > 35) setCamStatus('', t('cam.align'));
+    else setCamStatus('blurry', t('cam.blurry'));
     return;
   }
 
@@ -1934,14 +2195,14 @@ function updateSharpnessUI(score, motion) {
 
   if (!autoCaptureEnabled || scanInProgress) {
     goodSince = null;
-    setCamStatus('good', 'Scharf — bereit!');
+    setCamStatus('good', t('cam.ready'));
     return;
   }
 
   // Sharp but still moving (or not armed yet) → ask the user to hold steady; no countdown
   if (!armed || !isStable) {
     goodSince = null;
-    setCamStatus('good', 'Ruhig halten…');
+    setCamStatus('good', t('cam.hold'));
     return;
   }
 
@@ -1949,11 +2210,11 @@ function updateSharpnessUI(score, motion) {
   if (goodSince == null) goodSince = Date.now();
   const remaining = AUTO_CAPTURE_DWELL_MS - (Date.now() - goodSince);
   if (remaining <= 0) {
-    setCamStatus('good', 'Auto-Scan…');
+    setCamStatus('good', t('cam.autoNow'));
     captureFrame();            // identical to tapping "Scannen"
     return;
   }
-  setCamStatus('good', `Auto-Scan in ${Math.ceil(remaining / 1000)}…`);
+  setCamStatus('good', t('cam.autoIn', { n: Math.ceil(remaining / 1000) }));
 }
 
 // Toggle the auto-capture feature (persisted). stopPropagation so the tap
@@ -2048,7 +2309,7 @@ function resetScanUI() {
 }
 
 function showProcessing(msg, sub) {
-  document.getElementById('processingText').textContent = msg || 'Bitte warten…';
+  document.getElementById('processingText').textContent = msg || t('proc.wait');
   document.getElementById('processingStep').textContent = sub || '';
   document.getElementById('processingMsg').style.display = 'block';
 }
@@ -2093,14 +2354,14 @@ async function captureFrame() {
   document.getElementById('videoWrap').style.display = 'none';
 
   if (getKey()) {
-    showProcessing('Karte wird erkannt…', 'Claude analysiert das Bild');
+    showProcessing(t('proc.recognising'), t('proc.claude'));
     try {
       const info = await recognizeWithClaude(b64);
       hideProcessing();
 
       // CONFIDENT: Claude explicitly confident AND name + number both readable
       if (info.confident && info.name && info.number) {
-        showProcessing('Suche Editionen…', info.name + ' · #' + info.number);
+        showProcessing(t('proc.searchEd'), info.name + ' · #' + info.number);
         try {
           const result = await searchAllCards(info.name, info.number);
           hideProcessing();
@@ -2114,7 +2375,7 @@ async function captureFrame() {
         } catch (e2) {
           hideProcessing();
           // Not in DB → fall back to confirm so user can fix
-          showConfirmStep({ ...info, _hint: 'Karte erkannt, aber nicht in der Datenbank. Name/Nummer ggf. korrigieren.' }, b64);
+          showConfirmStep({ ...info, _hint: t('conf.notInDb') }, b64);
         }
 
       // UNCERTAIN: name only, no number → pre-fill confirm
@@ -2123,13 +2384,13 @@ async function captureFrame() {
 
       // NOT RECOGNISED
       } else {
-        showConfirmStep({ name: '', number: '', set: '', _error: 'Kein Pokemon erkannt. Bitte Name manuell eingeben.' }, b64);
+        showConfirmStep({ name: '', number: '', set: '', _error: t('conf.noPoke') }, b64);
       }
 
     } catch (e) {
       hideProcessing();
       // Show the actual error so problems are diagnosable (invalid key, bad request, etc.)
-      showConfirmStep({ name: '', number: '', set: '', _error: e.message || 'Erkennung fehlgeschlagen. Bitte Name manuell eingeben.' }, b64);
+      showConfirmStep({ name: '', number: '', set: '', _error: e.message || t('err.recognFail') }, b64);
     }
   } else {
     showConfirmStep({ name: '', number: '', set: '' }, b64);
@@ -2142,7 +2403,7 @@ async function captureFrame() {
 // CLAUDE VISION
 // ═══════════════════════════════════════════════════════
 async function recognizeWithClaude(b64) {
-  if (!b64 || b64.length < 100) throw new Error('Leeres Bild — bitte erneut scannen');
+  if (!b64 || b64.length < 100) throw new Error(t('err.emptyImage'));
 
   const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -2193,23 +2454,23 @@ Critical rules:
     const detail = data?.error?.message || `Status ${res.status}`;
     const lower = detail.toLowerCase();
     if (res.status === 401) {
-      throw new Error('API-Key ungültig. Bitte unter console.anthropic.com prüfen.');
+      throw new Error(t('err.apiInvalid'));
     }
     if (lower.includes('credit balance') || lower.includes('billing') || lower.includes('too low')) {
       // Most common real-world case: account has no credit
-      throw new Error('CREDITS:Kein Guthaben auf dem Anthropic-Konto. Lade unter console.anthropic.com → Billing Guthaben auf, oder nutze einfach die manuelle Suche unten — die funktioniert kostenlos.');
+      throw new Error('CREDITS:' + t('err.credits'));
     }
-    if (res.status === 429) throw new Error('Zu viele Anfragen. Bitte kurz warten und erneut versuchen.');
-    if (res.status === 400) throw new Error('Anfrage abgelehnt: ' + detail);
-    throw new Error(`Fehler ${res.status}: ${detail}`);
+    if (res.status === 429) throw new Error(t('err.tooMany'));
+    if (res.status === 400) throw new Error(t('err.reqRejected', { detail }));
+    throw new Error(t('err.httpErr', { status: res.status, detail }));
   }
 
   if (data.error) throw new Error(data.error.message || 'API error');
 
   const raw = (data.content || []).map(b => b.text || '').join('');
   const parsed = safeJson(raw);
-  if (!parsed) throw new Error('Ungültige JSON-Antwort');
-  if (!parsed.name) throw new Error('Kein Pokémon erkannt');
+  if (!parsed) throw new Error(t('err.badJson'));
+  if (!parsed.name) throw new Error(t('err.noPokeRecog'));
   return parsed;
 }
 
@@ -2240,32 +2501,30 @@ function showConfirmStep(info, b64) {
     : '';
 
   // This step is always a fallback — either no API key, recognition failed, or uncertain result
-  const hintText = info.name
-    ? 'Name oder Nummer korrigieren falls nötig, dann suchen:'
-    : 'Pokémon-Name von der Karte eingeben (steht oben auf der Karte):';
+  const hintText = info.name ? t('conf.hintFix') : t('conf.hintNew');
 
   document.getElementById('confirmStep').innerHTML = `<div class="confirm-wrap">
-    <h3><i class="ti ti-pencil" aria-hidden="true" style="font-size:15px"></i> Karte manuell eingeben</h3>
+    <h3><i class="ti ti-pencil" aria-hidden="true" style="font-size:15px"></i> ${esc(t('conf.title'))}</h3>
     ${errorHtml}${creditsHtml}${hintHtml}
     <p class="confirm-hint">${hintText}</p>
     <div class="confirm-img-row">
       ${imgTag}
       <div class="confirm-fields">
         <div>
-          <label class="field-label" for="confName">Pokémon-Name *</label>
-          <input type="text" id="confName" value="${esc(info.name || '')}" placeholder="z.B. Mewtu" autocomplete="off" autocorrect="off" spellcheck="false"/>
+          <label class="field-label" for="confName">${esc(t('conf.nameLabel'))}</label>
+          <input type="text" id="confName" value="${esc(info.name || '')}" placeholder="${esc(t('conf.namePh'))}" autocomplete="off" autocorrect="off" spellcheck="false"/>
         </div>
         <div>
-          <label class="field-label" for="confNumber">Kartennummer (optional)</label>
-          <input type="text" id="confNumber" value="${esc(info.number || '')}" placeholder="z.B. 025/165" autocomplete="off" inputmode="numeric"/>
+          <label class="field-label" for="confNumber">${esc(t('conf.numLabel'))}</label>
+          <input type="text" id="confNumber" value="${esc(info.number || '')}" placeholder="${esc(t('conf.numPh'))}" autocomplete="off" inputmode="numeric"/>
         </div>
       </div>
     </div>
     <div class="confirm-btns">
       <button class="btn-confirm" id="confirmSearchBtn" onclick="searchFromConfirm()">
-        <i class="ti ti-search" aria-hidden="true"></i> Suchen
+        <i class="ti ti-search" aria-hidden="true"></i> ${esc(t('conf.search'))}
       </button>
-      <button class="btn-secondary" onclick="cancelScan()">Abbrechen</button>
+      <button class="btn-secondary" onclick="cancelScan()">${esc(t('common.cancel'))}</button>
     </div>
   </div>`;
   document.getElementById('confirmStep').style.display = 'block';
@@ -2293,7 +2552,7 @@ async function searchFromConfirm() {
   if (btn) { btn.disabled = true; }
   document.getElementById('confirmStep').style.display = 'none';
   document.getElementById('confirmStep').innerHTML = '';
-  showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
+  showProcessing(t('proc.searchAll'), t('proc.searchDb'));
   try {
     const result = await searchAllCards(name, number);
     hideProcessing();
@@ -2301,7 +2560,7 @@ async function searchFromConfirm() {
   } catch (e) {
     hideProcessing();
     document.getElementById('scanTrigger').style.display = 'block';
-    showError(`Keine Editionen für „${esc(name)}" gefunden. Anderen Namen versuchen?`);
+    showError(t('err.noEditions', { name }));
   }
 }
 
@@ -2439,28 +2698,28 @@ function showCardPicker(result, nameArg) {
 
   if (!cards.length) {
     document.getElementById('scanTrigger').style.display = 'block';
-    showError(`Keine Treffer für „${esc(name)}". Anderen Namen versuchen?`);
+    showError(t('err.noEditions', { name }));
     return;
   }
 
   const totalKnown = cards.length + remaining.length;
   const filterBox = totalKnown > 8
-    ? `<input type="search" id="pickerFilter" class="picker-filter" placeholder="Nach Set filtern, z.B. Base, Jungle…" oninput="filterPicker(this.value)" aria-label="Editionen nach Set filtern"/>`
+    ? `<input type="search" id="pickerFilter" class="picker-filter" placeholder="${esc(t('pick.filterPh'))}" oninput="filterPicker(this.value)" aria-label="Editionen nach Set filtern"/>`
     : '';
 
   const countText = remaining.length
-    ? `<strong>${cards.length}</strong> von ${totalKnown} Treffern für „${esc(name)}"`
-    : `<strong>${cards.length}</strong> Treffer für „${esc(name)}" — tippe auf die richtige Edition:`;
+    ? t('pick.countMore', { n: cards.length, total: totalKnown, name: esc(name) })
+    : t('pick.count', { n: cards.length, name: esc(name) });
 
   document.getElementById('cardPicker').innerHTML = `<div class="picker-wrap">
-    <h3><i class="ti ti-list-search" aria-hidden="true" style="font-size:15px"></i> Edition wählen</h3>
+    <h3><i class="ti ti-list-search" aria-hidden="true" style="font-size:15px"></i> ${esc(t('pick.title'))}</h3>
     <p class="picker-sub">${countText}</p>
     ${filterBox}
     <div class="picker-grid" id="pickerGrid" role="list">${pickerItemsHtml(cards)}</div>
-    <p class="picker-empty-filter" id="pickerEmptyFilter" style="display:none">Kein Set passt zum Filter.</p>
+    <p class="picker-empty-filter" id="pickerEmptyFilter" style="display:none">${esc(t('pick.noFilter'))}</p>
     <div id="loadMoreWrap" style="margin-top:10px">${loadMoreButtonHtml()}</div>
     <div style="margin-top:8px">
-      <button class="btn-secondary" style="width:100%;padding:11px;text-align:center" onclick="cancelScan()">Abbrechen</button>
+      <button class="btn-secondary" style="width:100%;padding:11px;text-align:center" onclick="cancelScan()">${esc(t('common.cancel'))}</button>
     </div>
   </div>`;
   document.getElementById('cardPicker').style.display = 'block';
@@ -2480,8 +2739,8 @@ function pickerItemsHtml(cards) {
     const rel = c.releaseDate ? `<span class="picker-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</span>` : '';
     const priceEl = c.price != null
       ? `<span class="picker-price">${fmtPrice(c.price)}</span>`
-      : `<span class="picker-no-price">kein Preis</span>`;
-    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : 'kein Preis'}">
+      : `<span class="picker-no-price">${esc(t('pick.noPrice'))}</span>`;
+    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : esc(t('pick.noPrice'))}">
       ${img}${ph}
       <div class="picker-info">
         <div class="picker-name">${esc(c.name)}</div>
@@ -2497,7 +2756,7 @@ function loadMoreButtonHtml() {
   if (!currentPickerRemaining.length) return '';
   const n = Math.min(12, currentPickerRemaining.length);
   return `<button class="picker-loadmore" id="loadMoreBtn" onclick="loadMoreResults()">
-    <i class="ti ti-chevron-down" aria-hidden="true"></i> ${n} weitere laden
+    <i class="ti ti-chevron-down" aria-hidden="true"></i> ${esc(t('pick.loadMore', { n }))}
   </button>`;
 }
 
@@ -2506,7 +2765,7 @@ async function loadMoreResults() {
   const btn = document.getElementById('loadMoreBtn');
   if (!btn || !currentPickerRemaining.length) return;
   btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true" style="animation:spin 1s linear infinite"></i> Lädt…';
+  btn.innerHTML = `<i class="ti ti-loader-2" aria-hidden="true" style="animation:spin 1s linear infinite"></i> ${esc(t('pick.loading'))}`;
 
   const PAGE = 12;
   const nextStubs = currentPickerRemaining.slice(0, PAGE);
@@ -2527,8 +2786,8 @@ async function loadMoreResults() {
   if (sub) {
     const total = currentPickerCards.length + currentPickerRemaining.length;
     sub.innerHTML = currentPickerRemaining.length
-      ? `<strong>${currentPickerCards.length}</strong> von ${total} Treffern für „${esc(currentPickerName)}"`
-      : `<strong>${currentPickerCards.length}</strong> Treffer für „${esc(currentPickerName)}"`;
+      ? t('pick.countMore', { n: currentPickerCards.length, total, name: esc(currentPickerName) })
+      : t('pick.count', { n: currentPickerCards.length, name: esc(currentPickerName) });
   }
   const wrap = document.getElementById('loadMoreWrap');
   if (wrap) wrap.innerHTML = loadMoreButtonHtml();
@@ -2551,8 +2810,8 @@ function pickerItemsHtmlFrom(cards, offset) {
     const rel = c.releaseDate ? `<span class="picker-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:10px;vertical-align:-1px"></i> ${esc(c.releaseDate)}</span>` : '';
     const priceEl = c.price != null
       ? `<span class="picker-price">${fmtPrice(c.price)}</span>`
-      : `<span class="picker-no-price">kein Preis</span>`;
-    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : 'kein Preis'}">
+      : `<span class="picker-no-price">${esc(t('pick.noPrice'))}</span>`;
+    return `<button class="picker-item" id="pi-${i}" onclick="selectPickerCard(${i})" aria-label="${esc(c.name)}, ${esc(c.set)}, ${c.price != null ? fmtPrice(c.price) : esc(t('pick.noPrice'))}">
       ${img}${ph}
       <div class="picker-info">
         <div class="picker-name">${esc(c.name)}</div>
@@ -2603,7 +2862,7 @@ async function selectPickerCard(i) {
     }
     resetScanUI();
     editingCollId = null;
-    showToast('Edition aktualisiert!');
+    showToast(t('toast.edUpdated'));
   } else {
     // New card — show result before adding
     document.getElementById('cardPicker').style.display = 'none';
@@ -2617,19 +2876,19 @@ async function selectPickerCard(i) {
 // ═══════════════════════════════════════════════════════
 function buildPriceBlock(pricing) {
   if (!pricing?.cardmarket) {
-    return '<p style="font-size:13px;color:var(--c-n-aaa);margin:6px 0">Kein Preis auf Cardmarket gefunden.</p>';
+    return `<p style="font-size:13px;color:var(--c-n-aaa);margin:6px 0">${esc(t('res.noCm'))}</p>`;
   }
   const cm = pricing.cardmarket;
   const row = (l, v) => `<div class="price-item">
     <div class="price-item-label">${l}</div>
     <div class="price-item-val ${v == null ? 'muted' : ''}">${v != null ? '€' + parseFloat(v).toFixed(2) : '—'}</div>
   </div>`;
-  const upd = cm.updated ? `<div class="price-updated">Stand: ${fmtDate(cm.updated)}</div>` : '';
+  const upd = cm.updated ? `<div class="price-updated">${esc(t('price.updated', { d: fmtDate(cm.updated) }))}</div>` : '';
   return `<div class="price-block">
-    <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> Cardmarket (EUR)</div>
+    <div class="price-block-title"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:12px"></i> ${esc(t('price.cmTitle'))}</div>
     <div class="price-grid">
-      ${row('Trend', cm.trend)}${row('Ø 7 Tage', cm.avg7)}
-      ${row('Ø 30 Tage', cm.avg30)}${row('Aktueller Ø', cm.avg)}
+      ${row(esc(t('price.trend')), cm.trend)}${row(esc(t('price.avg7')), cm.avg7)}
+      ${row(esc(t('price.avg30')), cm.avg30)}${row(esc(t('price.avgNow')), cm.avg)}
     </div>${upd}
   </div>`;
 }
@@ -2641,7 +2900,7 @@ function showResult(card) {
   const dupIdx = collection.findIndex(c => c.cardId === card.id || (c.name === card.name && c.cardNumber === card.cardNumber && c.set === card.set));
   const isDup = dupIdx !== -1;
   const dupWarn = isDup
-    ? `<div class="dup-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>Diese Karte ist bereits in deiner Sammlung (${esc(collection[dupIdx].name)}, ${esc(collection[dupIdx].set)}).</span></div>`
+    ? `<div class="dup-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>${esc(t('res.dup', { name: collection[dupIdx].name, set: collection[dupIdx].set }))}</span></div>`
     : '';
 
   const img = card.image
@@ -2650,7 +2909,7 @@ function showResult(card) {
   const ph = `<div class="card-img-ph" style="${card.image ? 'display:none' : ''}" aria-hidden="true"><i class="ti ti-pokeball"></i></div>`;
   const priceDisplay = card.price != null
     ? `<span class="price-summary-val">${fmtPrice(card.price)}</span>`
-    : `<span class="price-summary-na">Kein Preis</span>`;
+    : `<span class="price-summary-na">${esc(t('res.noPrice'))}</span>`;
   const serieSet = card.serie ? `${esc(card.serie)} › ${esc(card.set)}` : esc(card.set || '—');
   const rel = card.releaseDate
     ? `<div class="result-release"><i class="ti ti-calendar" aria-hidden="true" style="font-size:11px"></i> ${esc(card.releaseDate)}</div>`
@@ -2662,15 +2921,15 @@ function showResult(card) {
   // New card → primary action is "add to collection".
   const buttons = isDup
     ? `<div class="result-btns">
-        <button class="btn-add" onclick="discardResult()"><i class="ti ti-check" aria-hidden="true"></i> Überspringen</button>
-        <button class="btn-wrong" onclick="addCard()" title="Trotzdem als Dublette hinzufügen"><i class="ti ti-plus" aria-hidden="true"></i> Trotzdem</button>
+        <button class="btn-add" onclick="discardResult()"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('res.skip'))}</button>
+        <button class="btn-wrong" onclick="addCard()" title="${esc(t('res.anyway'))}"><i class="ti ti-plus" aria-hidden="true"></i> ${esc(t('res.anyway'))}</button>
       </div>
-      <button class="btn-result-secondary" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> Andere Edition wählen</button>`
+      <button class="btn-result-secondary" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> ${esc(t('res.otherEd'))}</button>`
     : `<div class="result-btns">
-        <button class="btn-add" onclick="addCard()"><i class="ti ti-plus" aria-hidden="true"></i> Zur Sammlung</button>
-        <button class="btn-wrong" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> Falsche Edition</button>
+        <button class="btn-add" onclick="addCard()"><i class="ti ti-plus" aria-hidden="true"></i> ${esc(t('res.add'))}</button>
+        <button class="btn-wrong" onclick="backToPicker()"><i class="ti ti-refresh" aria-hidden="true"></i> ${esc(t('res.wrongEd'))}</button>
       </div>
-      <button class="btn-result-secondary" onclick="discardResult()"><i class="ti ti-x" aria-hidden="true"></i> Abbrechen</button>`;
+      <button class="btn-result-secondary" onclick="discardResult()"><i class="ti ti-x" aria-hidden="true"></i> ${esc(t('common.cancel'))}</button>`;
 
   document.getElementById('scanResult').innerHTML = `<div class="result-card">
     ${dupWarn}
@@ -2685,7 +2944,7 @@ function showResult(card) {
     </div>
     ${buildPriceBlock(card.pricing)}
     <div class="price-summary">
-      <span style="font-size:12px;color:var(--c-n-888)">Cardmarket Trend</span>
+      <span style="font-size:12px;color:var(--c-n-888)">${esc(t('res.trend'))}</span>
       ${priceDisplay}
     </div>
     ${buttons}
@@ -2792,7 +3051,7 @@ function checkChallengeProgress(celebrate) {
     done[info.weekAbs] = Date.now();
     saveChallengesDone(done);
     renderWeeklyChallenge();
-    if (celebrate) showCelebration(info.challenge.icon, 'Challenge gemeistert!', info.challenge.title, 'Super gemacht! 🎉');
+    if (celebrate) showCelebration(info.challenge.icon, t('ch.celebrate'), chT(info.challenge), t('ch.celebrateDesc'));
     return true;
   }
   renderWeeklyChallenge();
@@ -2813,23 +3072,24 @@ function renderWeeklyChallenge() {
   const daysLeft = Math.max(0, Math.ceil((info.windowEnd - Date.now()) / 86400000));
 
   const status = done
-    ? `<div class="ch-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> Geschafft!</div>`
-    : `<div class="ch-status open"><i class="ti ti-target-arrow" aria-hidden="true"></i> Scanne eine passende Karte!</div>`;
+    ? `<div class="ch-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> ${esc(t('ch.done'))}</div>`
+    : `<div class="ch-status open"><i class="ti ti-target-arrow" aria-hidden="true"></i> ${esc(t('ch.open'))}</div>`;
+  const foot = daysLeft === 1 ? t('ch.footOne') : t('ch.footMany', { n: daysLeft });
 
   wrap.innerHTML = `<div class="challenge-card ${done ? 'done' : ''}">
     <div class="challenge-head">
-      <div class="challenge-eyebrow"><i class="ti ti-flag-2" aria-hidden="true"></i> Challenge der Woche</div>
-      <span class="challenge-counter">${doneCount}/${total} · Woche ${info.index + 1}</span>
+      <div class="challenge-eyebrow"><i class="ti ti-flag-2" aria-hidden="true"></i> ${esc(t('ch.eyebrow'))}</div>
+      <span class="challenge-counter">${doneCount}/${total} · ${esc(t('ch.week', { n: info.index + 1 }))}</span>
     </div>
     <div class="challenge-body">
       <div class="challenge-icon"><i class="ti ${esc(ch.icon)}" aria-hidden="true"></i></div>
       <div class="challenge-info">
-        <div class="challenge-title">${esc(ch.title)}</div>
-        <div class="challenge-desc">${esc(ch.desc)}</div>
+        <div class="challenge-title">${esc(chT(ch))}</div>
+        <div class="challenge-desc">${esc(chD(ch))}</div>
         ${status}
       </div>
     </div>
-    ${done ? '' : `<div class="challenge-foot">Noch ${daysLeft} Tag${daysLeft === 1 ? '' : 'e'} · neue Challenge am Montag</div>`}
+    ${done ? '' : `<div class="challenge-foot">${esc(foot)}</div>`}
   </div>`;
   updatePlayHub();
 }
@@ -3009,7 +3269,7 @@ function runNextCelebration() {
 }
 
 function celebrateAchievement(a) {
-  showCelebration(a.icon, 'Erfolg freigeschaltet!', a.title, a.desc);
+  showCelebration(a.icon, t('ach.unlockedLabel'), achT(a), achD(a));
 }
 
 function renderAchievements() {
@@ -3035,7 +3295,7 @@ function renderAchievements() {
     const s = achState(a, st, unlocked);
     const isSecret = a.secret && !s.unlocked;
     const icon = s.unlocked ? esc(a.icon) : (isSecret ? 'ti-lock' : esc(a.icon));
-    const titleText = isSecret ? '???' : esc(a.title);
+    const titleText = isSecret ? '???' : esc(achT(a));
     // Mini progress bar only for measurable, still-locked, non-secret achievements
     const bar = (!s.unlocked && !isSecret && s.hasBar)
       ? `<div class="ach-bar-track"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
@@ -3065,15 +3325,13 @@ function renderNextAchievement(st, unlocked) {
   }
   if (!best) { slot.style.display = 'none'; slot.innerHTML = ''; return; }
   const { a, s } = best;
-  const remaining = a.unit === 'eur'
-    ? `Noch ${fmtPrice(s.target - s.cur)}`
-    : `Noch ${Math.ceil(s.target - s.cur)}`;
+  const remaining = t('ach.remShort', { v: a.unit === 'eur' ? fmtPrice(s.target - s.cur) : Math.ceil(s.target - s.cur) });
   slot.style.display = 'block';
-  slot.innerHTML = `<button class="next-ach" onclick="openAchievementDetail('${esc(a.id)}')" aria-label="Nächster Erfolg: ${esc(a.title)}">
+  slot.innerHTML = `<button class="next-ach" onclick="openAchievementDetail('${esc(a.id)}')" aria-label="${esc(t('ach.next'))}: ${esc(achT(a))}">
     <div class="next-ach-icon"><i class="ti ${esc(a.icon)}" aria-hidden="true"></i></div>
     <div class="next-ach-body">
-      <div class="next-ach-label">Nächster Erfolg</div>
-      <div class="next-ach-title">${esc(a.title)} · <span class="next-ach-rem">${remaining}</span></div>
+      <div class="next-ach-label">${esc(t('ach.next'))}</div>
+      <div class="next-ach-title">${esc(achT(a))} · <span class="next-ach-rem">${esc(remaining)}</span></div>
       <div class="ach-bar-track"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
     </div>
     <div class="next-ach-prog">${esc(fmtProgress(s.cur, s.target, a.unit))}</div>
@@ -3091,34 +3349,34 @@ function openAchievementDetail(id) {
 
   const iconCls = s.unlocked ? 'unlocked' : 'locked';
   const icon = isSecret ? 'ti-lock' : esc(a.icon);
-  const title = isSecret ? 'Versteckter Erfolg' : esc(a.title);
+  const title = isSecret ? esc(t('ach.secretTitle')) : esc(achT(a));
 
   let body;
   if (s.unlocked) {
     const ts = getAchievementTimes()[a.id];
-    const when = ts ? `<div class="ach-detail-date">Freigeschaltet am ${fmtDate(ts)}</div>` : '';
-    body = `<div class="ach-detail-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> Freigeschaltet</div>
-      <p class="ach-detail-desc">${esc(a.desc)}</p>${when}`;
+    const when = ts ? `<div class="ach-detail-date">${esc(t('ach.unlockedOn', { d: fmtDate(ts) }))}</div>` : '';
+    body = `<div class="ach-detail-status done"><i class="ti ti-circle-check" aria-hidden="true"></i> ${esc(t('ach.unlocked'))}</div>
+      <p class="ach-detail-desc">${esc(achD(a))}</p>${when}`;
   } else if (isSecret) {
-    body = `<p class="ach-detail-desc">Ein versteckter Erfolg — finde selbst heraus, wie du ihn freischaltest! 🔍</p>`;
+    body = `<p class="ach-detail-desc">${esc(t('ach.secretDesc'))}</p>`;
   } else {
     const remaining = a.unit === 'eur' ? fmtPrice(s.target - s.cur) : Math.ceil(s.target - s.cur);
-    const remLabel = s.hasBar ? `<div class="ach-detail-rem">Noch ${esc(String(remaining))} bis zum Erfolg!</div>` : '';
+    const remLabel = s.hasBar ? `<div class="ach-detail-rem">${esc(t('ach.toGo', { n: remaining }))}</div>` : '';
     const barBlock = s.hasBar
       ? `<div class="ach-bar-track big"><div class="ach-bar-fill" style="width:${s.pct}%"></div></div>
          <div class="ach-detail-prog">${esc(fmtProgress(s.cur, s.target, a.unit))} · ${s.pct}%</div>`
       : '';
-    body = `<p class="ach-detail-desc">${esc(a.desc)}</p>${barBlock}${remLabel}`;
+    body = `<p class="ach-detail-desc">${esc(achD(a))}</p>${barBlock}${remLabel}`;
   }
 
   document.getElementById('modalContent').innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
     <div class="ach-detail">
       <div class="ach-detail-icon ${iconCls}"><i class="ti ${icon}" aria-hidden="true"></i></div>
       <div class="ach-detail-title">${title}</div>
       ${body}
     </div>
-    <button class="btn-close-modal" style="margin-top:16px" onclick="closeModalDirect()">Schließen</button>`;
+    <button class="btn-close-modal" style="margin-top:16px" onclick="closeModalDirect()">${esc(t('set.close'))}</button>`;
   document.getElementById('modalBg').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -3207,12 +3465,12 @@ function addCard() {
   // Milestone / celebratory messages — fun for kids
   const count = collection.length;
   let msg;
-  if (wasEmpty) msg = '🎉 Deine erste Karte!';
-  else if (count === 10) msg = '🏅 Schon 10 Karten!';
-  else if (count === 25) msg = '🌟 25 Karten — stark!';
-  else if (count === 50) msg = '🏆 50 Karten gesammelt!';
-  else if (count % 100 === 0) msg = `🎊 ${count} Karten!`;
-  else msg = '✓ Karte hinzugefügt!';
+  if (wasEmpty) msg = t('toast.first');
+  else if (count === 10) msg = t('toast.ten');
+  else if (count === 25) msg = t('toast.25');
+  else if (count === 50) msg = t('toast.50');
+  else if (count % 100 === 0) msg = t('toast.milestone', { n: count });
+  else msg = t('toast.added');
 
   // Did this card complete the current weekly challenge? (celebrates if so)
   const challengeDone = checkChallengeProgress(true);
@@ -3247,7 +3505,7 @@ async function manualSearch() {
     showCardPicker(result);
   } catch (e) {
     document.getElementById('scanTrigger').style.display = 'block';
-    showError(`Keine Treffer für „${esc(name)}". Anderen Namen oder Schreibweise versuchen.`);
+    showError(t('err.noHits', { name }));
   }
   btn.disabled = false;
   btn.innerHTML = '<i class="ti ti-search" aria-hidden="true"></i>';
@@ -3302,6 +3560,7 @@ function dismissOnboarding() {
 // Show the build version + collector greeting in the topbar
 const verEl = document.getElementById('appVersion');
 if (verEl) verEl.textContent = APP_VERSION;
+applyI18n();
 updateTopbarGreeting();
 // Restore saved view mode button state
 ['grid', 'list', 'sets'].forEach(m => {
