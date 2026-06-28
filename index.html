@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v20 — Karten-Erkennung: Japanisch & Koreanisch (Auto-Erkennung, sprachbewusste Suche) -->
+<!-- PokéVault v19 — Dark Mode (folgt iOS-Systemeinstellung) via :root-Token-Set -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -763,7 +763,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v20';
+const APP_VERSION = 'v19';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -780,8 +780,6 @@ let pendingCard = null;           // Card about to be added
 let currentPickerCards = [];      // Enriched editions currently shown
 let currentPickerName = '';
 let currentPickerRemaining = [];  // Raw candidates not yet loaded (for "load more")
-let currentPickerLang = 'en';     // TCGdex language that produced the current results
-let lastScanLang = '';            // language detected on the last camera scan (for confirm step)
 let editingCollId = null;         // stable card ID being re-editioned (null = new card)
 let scanInProgress = false;       // debounce flag
 let autoCaptureEnabled = localStorage.getItem('pokevault_autoCapture') !== '0'; // default ON
@@ -1671,7 +1669,7 @@ async function changeEdition(uid) {
   showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
   document.getElementById('scanTrigger').style.display = 'none';
   try {
-    const result = await searchAllCards(c.name, '', c.lang);
+    const result = await searchAllCards(c.name, '');
     hideProcessing();
     showCardPicker(result);
   } catch (e) {
@@ -1695,7 +1693,6 @@ async function startScan() {
   prevSmall = null;
   sharpnessHistory = [];
   motionHistory = [];
-  lastScanLang = '';
   scanArmedAt = Date.now();    // start the arming delay
   updateAutoToggleLabel();
   setCamStatus('starting', 'Kamera startet…');
@@ -2036,13 +2033,12 @@ async function captureFrame() {
     try {
       const info = await recognizeWithClaude(b64);
       hideProcessing();
-      lastScanLang = info.language || '';   // used if the user corrects in the confirm step
 
       // CONFIDENT: Claude explicitly confident AND name + number both readable
       if (info.confident && info.name && info.number) {
         showProcessing('Suche Editionen…', info.name + ' · #' + info.number);
         try {
-          const result = await searchAllCards(info.name, info.number, info.language);
+          const result = await searchAllCards(info.name, info.number);
           hideProcessing();
           if (result.cards.length === 1 && !result.remaining.length) {
             // Unique match → straight to result
@@ -2103,16 +2099,15 @@ async function recognizeWithClaude(b64) {
 
 Return ONLY valid JSON — no markdown, no explanation:
 {
-  "name": "exact Pokémon species name as printed at the top of the card, IN THE ORIGINAL SCRIPT (e.g. 'Mewtu', 'Pikachu ex', Japanese 'リザードン', Korean '리자몽'). Empty string if unsure.",
-  "number": "card number exactly as printed, usually a bottom corner (e.g. '025/165', '136/264', or Japanese promos like '025/SV-P'). Empty string if not clearly visible.",
+  "name": "exact Pokémon species name as printed on card top (e.g. 'Mewtu', 'Glurak', 'Pikachu ex'). Empty string if unsure.",
+  "number": "card number exactly as printed, usually bottom-left or bottom-right corner (e.g. '025/165' or '136/264'). Empty string if not clearly visible.",
   "set": "set name printed at the very bottom of the card. Empty string if not visible.",
-  "language": "the card's printed language as a 2-letter code: 'ja' for Japanese (katakana/kanji), 'ko' for Korean (hangul), 'de' for German, otherwise 'en'",
+  "language": "de if card text is German, en otherwise",
   "confident": true or false — set true ONLY if you can clearly read both name AND number
 }
 
 Critical rules:
 - name must be ONLY the Pokémon species name at the top of the card — not move names, trainer names or item names
-- For Japanese or Korean cards, keep the name in its original script — do NOT translate or romanize it
 - number format is digits/digits — look carefully at bottom corners
 - If the image is blurry, dark, or not a Pokémon card: set name and number to empty strings and confident to false
 - Return ONLY the JSON object` }
@@ -2236,7 +2231,7 @@ async function searchFromConfirm() {
   document.getElementById('confirmStep').innerHTML = '';
   showProcessing('Suche alle Editionen…', 'Durchsuche TCGdex-Datenbank');
   try {
-    const result = await searchAllCards(name, number, lastScanLang);
+    const result = await searchAllCards(name, number);
     hideProcessing();
     showCardPicker(result);
   } catch (e) {
@@ -2249,19 +2244,11 @@ async function searchFromConfirm() {
 // ═══════════════════════════════════════════════════════
 // TCGDEX API
 // ═══════════════════════════════════════════════════════
-async function searchAllCards(name, numberHint, langHint) {
+async function searchAllCards(name, numberHint) {
   let cards = [];
-  let matchedLang = 'en';
 
-  // Language order: the detected card language first (ja/ko for Japanese/Korean),
-  // then DE + EN as fallbacks. De/En default order is unchanged when no hint.
-  const langs = [];
-  for (const l of [langHint, 'de', 'en']) {
-    if (l && !langs.includes(l)) langs.push(l);
-  }
-
-  // Sequential to avoid rate-limit spikes; stop at the first language with hits.
-  for (const lang of langs) {
+  // Try German first, then English — sequential to avoid rate-limit spikes
+  for (const lang of ['de', 'en']) {
     try {
       const r = await fetchWithTimeout(
         `https://api.tcgdex.net/v2/${lang}/cards?name=${encodeURIComponent(name)}`,
@@ -2269,7 +2256,7 @@ async function searchAllCards(name, numberHint, langHint) {
       );
       if (r.ok) {
         const d = await r.json();
-        if (Array.isArray(d) && d.length) { cards = d; matchedLang = lang; break; }
+        if (Array.isArray(d) && d.length) { cards = d; break; }
       }
     } catch (e) { /* timeout or network error, try next lang */ }
   }
@@ -2311,20 +2298,19 @@ async function searchAllCards(name, numberHint, langHint) {
   const firstPage = allCandidates.slice(0, PAGE);
   const remaining = allCandidates.slice(PAGE);
 
-  const results = await enrichCards(firstPage, name, matchedLang);
+  const results = await enrichCards(firstPage, name);
   sortEnriched(results, nameLower);
 
   // Return both the loaded cards and the not-yet-loaded raw candidates
-  return { cards: results, remaining, name, nameLower, lang: matchedLang };
+  return { cards: results, remaining, name, nameLower };
 }
 
-// Enrich a list of raw TCGdex card stubs with image + pricing (batched).
-// `lang` is the language the candidates were found in — details/images are fetched there.
-async function enrichCards(stubs, name, lang) {
+// Enrich a list of raw TCGdex card stubs with image + pricing (batched)
+async function enrichCards(stubs, name) {
   const results = [];
   for (let i = 0; i < stubs.length; i += 6) {
     const batch = stubs.slice(i, i + 6);
-    const batchResults = await Promise.all(batch.map(c => fetchCardDetail(c, name, lang)));
+    const batchResults = await Promise.all(batch.map(c => fetchCardDetail(c, name)));
     results.push(...batchResults.filter(Boolean));
   }
   return results;
@@ -2341,24 +2327,16 @@ function sortEnriched(results, nameLower) {
   return results;
 }
 
-async function fetchCardDetail(c, fallbackName, lang) {
-  const tryLang = lang || 'en';
+async function fetchCardDetail(c, fallbackName) {
   try {
-    // Detail in the matched language; if that 404s (e.g. EN id missing for a
-    // Japanese-only card), fall back to EN so we still get something usable.
-    let r = await fetchWithTimeout(`https://api.tcgdex.net/v2/${tryLang}/cards/${c.id}`, {}, 6000);
-    let used = tryLang;
-    if (!r.ok && tryLang !== 'en') {
-      r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/cards/${c.id}`, {}, 6000);
-      used = 'en';
-    }
+    const r = await fetchWithTimeout(`https://api.tcgdex.net/v2/en/cards/${c.id}`, {}, 6000);
     if (!r.ok) return null;
     const d = await r.json();
-    return cardFromDetail(d, fallbackName, used);
+    return cardFromDetail(d, fallbackName);
   } catch (e) { return null; }
 }
 
-function cardFromDetail(d, fallbackName, lang) {
+function cardFromDetail(d, fallbackName) {
   const pricing = d.pricing || null;
   const cm = pricing?.cardmarket;
   const price = cm ? (cm.trend ?? cm.avg ?? cm.avg7 ?? null) : null;
@@ -2376,7 +2354,6 @@ function cardFromDetail(d, fallbackName, lang) {
     price: price != null ? parseFloat(price) : null,
     hp: d.hp != null ? parseInt(d.hp, 10) : null,   // for KP-based weekly challenges
     types: Array.isArray(d.types) ? d.types : [],   // e.g. ["Fire"] (TCGdex EN)
-    lang: lang || 'en',                             // TCGdex language this card came from
     pricing
   };
 }
@@ -2386,17 +2363,15 @@ function cardFromDetail(d, fallbackName, lang) {
 // ═══════════════════════════════════════════════════════
 // Accepts either the new result object {cards, remaining, name} or a plain array
 function showCardPicker(result, nameArg) {
-  let cards, remaining, name, lang;
+  let cards, remaining, name;
   if (Array.isArray(result)) {
-    cards = result; remaining = []; name = nameArg || ''; lang = 'en';
+    cards = result; remaining = []; name = nameArg || '';
   } else {
     cards = result.cards || []; remaining = result.remaining || []; name = result.name || nameArg || '';
-    lang = result.lang || 'en';
   }
   currentPickerCards = cards;
   currentPickerName = name;
   currentPickerRemaining = remaining;
-  currentPickerLang = lang;
 
   if (!cards.length) {
     document.getElementById('scanTrigger').style.display = 'block';
@@ -2473,7 +2448,7 @@ async function loadMoreResults() {
   const nextStubs = currentPickerRemaining.slice(0, PAGE);
   currentPickerRemaining = currentPickerRemaining.slice(PAGE);
 
-  const more = await enrichCards(nextStubs, currentPickerName, currentPickerLang);
+  const more = await enrichCards(nextStubs, currentPickerName);
   // Append to existing, keep ordering stable (newly loaded go to the end)
   const startIdx = currentPickerCards.length;
   currentPickerCards = currentPickerCards.concat(more);
@@ -2667,7 +2642,7 @@ function backToPicker() {
   document.getElementById('scanResult').style.display = 'none';
   document.getElementById('scanResult').innerHTML = '';
   if (currentPickerCards.length) {
-    showCardPicker({ cards: currentPickerCards, remaining: currentPickerRemaining, name: currentPickerName, lang: currentPickerLang });
+    showCardPicker({ cards: currentPickerCards, remaining: currentPickerRemaining, name: currentPickerName });
   } else {
     resetScanUI();
   }
@@ -3151,7 +3126,6 @@ function addCard() {
     cardNumber: pendingCard.cardNumber || '',
     hp: pendingCard.hp != null ? pendingCard.hp : null,   // weekly-challenge data
     types: Array.isArray(pendingCard.types) ? pendingCard.types : [],
-    lang: pendingCard.lang || 'en',                       // TCGdex language (for detail/edition re-fetch)
     addedAt: Date.now()
   });
   // Reset sort to newest so the just-added card is visible at the top
