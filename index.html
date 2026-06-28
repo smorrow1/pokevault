@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v23 — Personalisierung: Sammler-Name in Settings, Anzeige im Home-Screen -->
+<!-- PokéVault v24 — i18n Schritt 1: Sprachschalter (DE/EN) + Startseiten-Shell uebersetzt -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -53,6 +53,9 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 .settings-version{font-size:12px;color:var(--c-n-aaa);text-align:center;margin-top:4px}
 .settings-input{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid var(--c-bd2);border-radius:8px;background:var(--c-surface-2);color:var(--c-text);outline:none;font-family:monospace;-webkit-appearance:none}
 .settings-input:focus{border-color:var(--c-brand)}
+.lang-choice{display:flex;gap:8px}
+.lang-opt{flex:1;padding:10px;font-size:14px;font-weight:600;border:1px solid var(--c-bd2);border-radius:9px;background:var(--c-surface);color:var(--c-text);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.lang-opt.on{background:var(--c-mint);border-color:var(--c-mint-bd);color:var(--c-brand-dd)}
 .pokeball{width:36px;height:36px;border-radius:50%;border:2px solid var(--c-on-brand-2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .topbar-title{font-size:20px;font-weight:600}
 .topbar-sub{font-size:11px;color:var(--c-on-brand-2);margin-top:1px}
@@ -505,11 +508,11 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 
   <section class="stats-row" aria-label="Sammlungsstatistiken">
     <div class="stat-card">
-      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> Karten</div>
+      <div class="stat-label"><i class="ti ti-cards" aria-hidden="true"></i> <span data-i18n="stats.cards">Karten</span></div>
       <div class="stat-val" id="cardCount" aria-live="polite">0</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true"></i> Gesamtwert</div>
+      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true"></i> <span data-i18n="stats.total">Gesamtwert</span></div>
       <div class="stat-val green" id="totalVal" aria-live="polite">€0.00</div>
     </div>
   </section>
@@ -517,21 +520,21 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <!-- First-run onboarding — shown once while the collection is empty -->
   <section class="onboarding" id="onboardingCard" aria-label="Erste Schritte" style="display:none">
     <button class="onboarding-close" onclick="dismissOnboarding()" aria-label="Hinweis schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
-    <div class="onboarding-title"><i class="ti ti-confetti" aria-hidden="true"></i> Willkommen bei PokéVault!</div>
-    <p class="onboarding-lead">So fügst du deine erste Karte hinzu:</p>
+    <div class="onboarding-title"><i class="ti ti-confetti" aria-hidden="true"></i> <span data-i18n="ob.title">Willkommen bei PokéVault!</span></div>
+    <p class="onboarding-lead" data-i18n="ob.lead">So fügst du deine erste Karte hinzu:</p>
     <ol class="onboarding-steps">
-      <li><span class="ob-num"><i class="ti ti-camera" aria-hidden="true"></i></span> <span><strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.</span></li>
-      <li><span class="ob-num"><i class="ti ti-search" aria-hidden="true"></i></span> <span><strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.</span></li>
-      <li><span class="ob-num"><i class="ti ti-trophy" aria-hidden="true"></i></span> <span>Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.</span></li>
+      <li><span class="ob-num"><i class="ti ti-camera" aria-hidden="true"></i></span> <span data-i18n-html="ob.step1"><strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.</span></li>
+      <li><span class="ob-num"><i class="ti ti-search" aria-hidden="true"></i></span> <span data-i18n-html="ob.step2"><strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.</span></li>
+      <li><span class="ob-num"><i class="ti ti-trophy" aria-hidden="true"></i></span> <span data-i18n-html="ob.step3">Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.</span></li>
     </ol>
-    <button class="onboarding-cta" onclick="dismissOnboarding()"><i class="ti ti-arrow-down" aria-hidden="true"></i> Los geht's!</button>
+    <button class="onboarding-cta" onclick="dismissOnboarding()"><i class="ti ti-arrow-down" aria-hidden="true"></i> <span data-i18n="ob.cta">Los geht's!</span></button>
   </section>
 
   <!-- "Spielen" hub — groups Challenge + Set progress + Achievements under one
        collapsible header so the home screen stays tidy. -->
   <section class="play-hub" id="playHub" style="display:none">
     <div class="play-hub-header" onclick="togglePlayHub()" role="button" tabindex="0" aria-label="Spielen-Bereich ein-/ausklappen" onkeydown="if(event.key==='Enter'||event.key===' ')togglePlayHub()">
-      <h2 class="play-hub-title"><i class="ti ti-device-gamepad-2" aria-hidden="true"></i> Spielen</h2>
+      <h2 class="play-hub-title"><i class="ti ti-device-gamepad-2" aria-hidden="true"></i> <span data-i18n="section.play">Spielen</span></h2>
       <div class="play-hub-right">
         <span class="play-hub-summary" id="playHubSummary" aria-hidden="true"></span>
         <i class="ti ti-chevron-down play-hub-chevron" aria-hidden="true"></i>
@@ -545,7 +548,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <!-- Set progress — the retention loop: "what do I still need?" -->
       <section class="set-progress-section" id="setProgress" aria-label="Set-Fortschritt" style="display:none">
         <div class="set-progress-header">
-          <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> Set-Fortschritt</h2>
+          <h2 class="set-progress-title"><i class="ti ti-stack-2" aria-hidden="true"></i> <span data-i18n="section.setProgress">Set-Fortschritt</span></h2>
         </div>
         <div class="set-progress-grid"></div>
       </section>
@@ -553,7 +556,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <!-- Achievements — collectible badges -->
       <section class="achievements-section" id="achievementsSection" aria-label="Erfolge" style="display:none">
         <div class="achievements-header">
-          <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> Erfolge</h2>
+          <h2 class="achievements-title"><i class="ti ti-award" aria-hidden="true"></i> <span data-i18n="section.achievements">Erfolge</span></h2>
           <span class="achievements-count" id="achievementsCount">0 / 0</span>
         </div>
         <div class="next-achievement" id="nextAchievement" style="display:none"></div>
@@ -570,8 +573,8 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <section class="scan-section" aria-label="Karte scannen oder suchen">
     <div class="scan-trigger" id="scanTrigger" onclick="startScan()" role="button" tabindex="0" aria-label="Kamera öffnen um eine Karte zu scannen" onkeydown="if(event.key==='Enter'||event.key===' ')startScan()">
       <div class="icon" aria-hidden="true"><i class="ti ti-camera"></i></div>
-      <h2 style="font-size:16px;font-weight:600;color:var(--c-brand-dd);margin-bottom:4px">Karte scannen</h2>
-      <p>Kamera öffnen → fotografieren → Edition wählen</p>
+      <h2 data-i18n="scan.title" style="font-size:16px;font-weight:600;color:var(--c-brand-dd);margin-bottom:4px">Karte scannen</h2>
+      <p data-i18n="scan.sub">Kamera öffnen → fotografieren → Edition wählen</p>
     </div>
 
     <div id="videoWrap" aria-label="Kamera-Vorschau">
@@ -642,7 +645,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       type="search"
       id="manualInput"
       class="manual-input"
-      placeholder="Kartenname suchen, z.B. Mewtu…"
+      placeholder="Kartenname suchen, z.B. Mewtu…" data-i18n-ph="search.placeholder"
       autocomplete="off"
       onkeydown="if(event.key==='Enter')manualSearch()"
       aria-label="Pokémon-Kartenname eingeben"
@@ -655,29 +658,29 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
   <!-- Collection -->
   <section aria-label="Meine Sammlung">
     <div class="section-header">
-      <h2 class="section-title">Meine Sammlung</h2>
+      <h2 class="section-title" data-i18n="coll.title">Meine Sammlung</h2>
       <span class="section-count" id="collCount" aria-live="polite">0 Karten</span>
     </div>
 
     <!-- Search within own collection -->
     <div class="coll-search-row">
       <i class="ti ti-search coll-search-icon" aria-hidden="true"></i>
-      <input type="search" id="collSearch" class="coll-search-input" placeholder="In Sammlung suchen…" autocomplete="off" oninput="setCollQuery(this.value)" aria-label="In meiner Sammlung suchen"/>
+      <input type="search" id="collSearch" class="coll-search-input" placeholder="In Sammlung suchen…" data-i18n-ph="coll.searchPlaceholder" autocomplete="off" oninput="setCollQuery(this.value)" aria-label="In meiner Sammlung suchen"/>
     </div>
 
     <!-- Toolbar: filter toggle + sort, always compact in one row -->
     <div class="coll-toolbar">
       <button class="toolbar-btn" id="filterToggle" onclick="toggleFilters()" aria-expanded="false" aria-controls="filterPanel">
         <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
-        <span>Filter</span>
+        <span data-i18n="coll.filter">Filter</span>
         <span class="filter-count-badge" id="filterCountBadge" style="display:none">0</span>
       </button>
       <select id="sortSelect" class="toolbar-sort" onchange="setSort(this.value)" aria-label="Sammlung sortieren">
-        <option value="newest">Neueste zuerst</option>
-        <option value="price-desc">Wert: hoch → niedrig</option>
-        <option value="price-asc">Wert: niedrig → hoch</option>
-        <option value="name">Name (A–Z)</option>
-        <option value="release">Erscheinungsdatum</option>
+        <option value="newest" data-i18n="sort.newest">Neueste zuerst</option>
+        <option value="price-desc" data-i18n="sort.priceDesc">Wert: hoch → niedrig</option>
+        <option value="price-asc" data-i18n="sort.priceAsc">Wert: niedrig → hoch</option>
+        <option value="name" data-i18n="sort.name">Name (A–Z)</option>
+        <option value="release" data-i18n="sort.release">Erscheinungsdatum</option>
       </select>
       <div class="view-toggle" role="group" aria-label="Ansicht wechseln">
         <button class="view-btn active" id="viewGrid" onclick="setViewMode('grid')" aria-label="Kachelansicht" title="Kacheln"><i class="ti ti-layout-grid" aria-hidden="true"></i></button>
@@ -748,7 +751,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v23';
+const APP_VERSION = 'v24';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -771,6 +774,96 @@ let autoCaptureEnabled = localStorage.getItem('pokevault_autoCapture') !== '0'; 
 let deletedCard = null;           // for undo
 let deletedIndex = -1;
 let undoTimer = null;
+
+// ═══════════════════════════════════════════════════════
+// i18n — lightweight dictionary + t() helper (no build step)
+// Step 1 covers the static home-screen shell + settings. Deeper dynamic
+// strings (achievements/challenges/toasts/modals) follow in a later slice.
+// ═══════════════════════════════════════════════════════
+const STRINGS = {
+  de: {
+    'topbar.subDefault': 'Deine Karten-Sammlung',
+    'stats.cards': 'Karten', 'stats.total': 'Gesamtwert',
+    'section.play': 'Spielen', 'section.setProgress': 'Set-Fortschritt', 'section.achievements': 'Erfolge',
+    'scan.title': 'Karte scannen', 'scan.sub': 'Kamera öffnen → fotografieren → Edition wählen',
+    'search.placeholder': 'Kartenname suchen, z.B. Mewtu…',
+    'coll.title': 'Meine Sammlung', 'coll.searchPlaceholder': 'In Sammlung suchen…', 'coll.filter': 'Filter',
+    'coll.cardsSuffix': 'Karten',
+    'sort.newest': 'Neueste zuerst', 'sort.priceDesc': 'Wert: hoch → niedrig', 'sort.priceAsc': 'Wert: niedrig → hoch',
+    'sort.name': 'Name (A–Z)', 'sort.release': 'Erscheinungsdatum',
+    'empty.none': 'Noch keine Karten in deiner Sammlung.', 'empty.scanFirst': 'Scanne deine erste Karte!',
+    'empty.noFilter': 'Keine Karten passen zu Suche/Filter.', 'empty.noCat': 'Keine Karten in dieser Kategorie.',
+    'ob.title': 'Willkommen bei PokéVault!', 'ob.lead': 'So fügst du deine erste Karte hinzu:',
+    'ob.step1': '<strong>Karte scannen</strong> — Kamera öffnen, Karte in den Rahmen halten, sie löst von selbst aus.',
+    'ob.step2': '<strong>Oder Namen eintippen</strong> — die Suche funktioniert sofort, ganz <strong>ohne API-Key</strong>.',
+    'ob.step3': 'Weitersammeln — <strong>Erfolge & Wochen-Challenges</strong> schalten sich frei.',
+    'ob.cta': "Los geht's!",
+    'set.title': 'Einstellungen', 'set.lang': 'Sprache', 'set.langSub': 'Sprache der App-Oberfläche.',
+    'set.nameTitle': 'Sammler-Name (optional)',
+    'set.nameSub': 'Wird oben auf dem Start-Bildschirm angezeigt. Leer lassen für die Standard-Anzeige.',
+    'set.namePh': 'z.B. Lukas',
+    'set.apiTitle': 'Anthropic API-Key (optional)',
+    'set.apiSub': 'Für die automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong>, wird nur lokal gespeichert. Ohne Key funktioniert die manuelle Suche vollständig.',
+    'set.apiSaved': 'Key gespeichert', 'set.save': 'Speichern',
+    'set.scan': 'Scan', 'set.auto': 'Auto-Auslöser', 'set.autoSub': 'Löst aus, wenn die Karte scharf & ruhig im Rahmen liegt.',
+    'set.backup': 'Sammlung sichern', 'set.backupSub': 'Lade ein Backup herunter, damit nichts verloren geht.',
+    'set.backupDl': 'Backup herunterladen', 'set.backupLoad': 'Backup laden', 'set.close': 'Schließen'
+  },
+  en: {
+    'topbar.subDefault': 'Your card collection',
+    'stats.cards': 'Cards', 'stats.total': 'Total value',
+    'section.play': 'Play', 'section.setProgress': 'Set progress', 'section.achievements': 'Achievements',
+    'scan.title': 'Scan card', 'scan.sub': 'Open camera → take a photo → pick edition',
+    'search.placeholder': 'Search card name, e.g. Mewtwo…',
+    'coll.title': 'My collection', 'coll.searchPlaceholder': 'Search your collection…', 'coll.filter': 'Filter',
+    'coll.cardsSuffix': 'cards',
+    'sort.newest': 'Newest first', 'sort.priceDesc': 'Value: high → low', 'sort.priceAsc': 'Value: low → high',
+    'sort.name': 'Name (A–Z)', 'sort.release': 'Release date',
+    'empty.none': 'No cards in your collection yet.', 'empty.scanFirst': 'Scan your first card!',
+    'empty.noFilter': 'No cards match your search/filter.', 'empty.noCat': 'No cards in this category.',
+    'ob.title': 'Welcome to PokéVault!', 'ob.lead': 'How to add your first card:',
+    'ob.step1': '<strong>Scan a card</strong> — open the camera, hold the card in the frame, it captures by itself.',
+    'ob.step2': '<strong>Or type a name</strong> — search works right away, completely <strong>without an API key</strong>.',
+    'ob.step3': 'Keep collecting — <strong>achievements & weekly challenges</strong> unlock as you go.',
+    'ob.cta': "Let's go!",
+    'set.title': 'Settings', 'set.lang': 'Language', 'set.langSub': 'Language of the app interface.',
+    'set.nameTitle': 'Collector name (optional)',
+    'set.nameSub': 'Shown at the top of the home screen. Leave empty for the default.',
+    'set.namePh': 'e.g. Lukas',
+    'set.apiTitle': 'Anthropic API key (optional)',
+    'set.apiSub': 'For automatic card recognition via the camera. Free at <strong>console.anthropic.com</strong>, stored only on this device. Without a key, manual search works fully.',
+    'set.apiSaved': 'Key saved', 'set.save': 'Save',
+    'set.scan': 'Scan', 'set.auto': 'Auto-capture', 'set.autoSub': 'Fires when the card is sharp & steady in the frame.',
+    'set.backup': 'Back up collection', 'set.backupSub': 'Download a backup so nothing gets lost.',
+    'set.backupDl': 'Download backup', 'set.backupLoad': 'Load backup', 'set.close': 'Close'
+  }
+};
+let LANG = localStorage.getItem('pokevault_lang') ||
+  ((navigator.language || 'de').toLowerCase().startsWith('en') ? 'en' : 'de');
+
+function t(key, vars) {
+  let s = (STRINGS[LANG] && STRINGS[LANG][key]) || STRINGS.de[key] || key;
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+
+// Fill static elements tagged with data-i18n / -ph (placeholder) / -html (innerHTML)
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+}
+
+function setLang(l) {
+  if (l !== 'de' && l !== 'en') return;
+  LANG = l;
+  localStorage.setItem('pokevault_lang', l);
+  applyI18n();
+  // Re-render dynamic views that build strings in JS
+  updateStats(); renderCollection(); updateTopbarGreeting(); updateBackupNote();
+  if (document.querySelector('.settings-head')) openSettings();
+}
 
 // ═══════════════════════════════════════════════════════
 // PERSISTENCE  — stable UUIDs instead of array indices
@@ -895,7 +988,8 @@ function updateTopbarGreeting() {
   const el = document.getElementById('topbarSub');
   if (!el) return;
   const name = getCollectorName();
-  if (!name) { el.textContent = 'Deine Karten-Sammlung'; return; }
+  if (!name) { el.textContent = t('topbar.subDefault'); return; }
+  if (LANG === 'en') { el.textContent = (/s$/i.test(name) ? `${name}'` : `${name}'s`) + ' collection'; return; }
   const poss = /[sxz]$/i.test(name) ? `${name}'` : `${name}s`;
   el.textContent = `${poss} Sammlung`;
 }
@@ -913,47 +1007,56 @@ function saveApiKey() {
 function openSettings() {
   const keySet = !!getKey();
   document.getElementById('modalContent').innerHTML = `
-    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
-    <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> Einstellungen</div>
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="${esc(t('set.close'))}"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> ${esc(t('set.title'))}</div>
 
     <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-user" aria-hidden="true"></i> Sammler-Name (optional)</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Wird oben auf dem Start-Bildschirm angezeigt (z.&nbsp;B. „Lukas&nbsp;Sammlung"). Leer lassen für die Standard-Anzeige.</div>
-      <input type="text" id="collectorNameInput" class="settings-input" style="font-family:inherit" placeholder="z.B. Lukas" autocomplete="off" maxlength="24" value="${esc(getCollectorName())}"/>
-      <button class="btn-save-api" onclick="saveCollectorName()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> Anthropic API-Key (optional)</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Für die automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong>, wird nur lokal gespeichert. Ohne Key funktioniert die manuelle Suche vollständig.</div>
-      <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" value="${esc(getKey())}"/>
-      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
-      ${keySet ? '<div class="settings-row-sub" style="color:var(--c-brand-d);margin-top:8px"><i class="ti ti-circle-check" aria-hidden="true"></i> Key gespeichert</div>' : ''}
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-camera" aria-hidden="true"></i> Scan</div>
-      <div class="settings-row">
-        <div>
-          <div class="settings-row-text">Auto-Auslöser</div>
-          <div class="settings-row-sub">Löst aus, wenn die Karte scharf &amp; ruhig im Rahmen liegt.</div>
-        </div>
-        <button class="switch ${autoCaptureEnabled ? 'on' : ''}" role="switch" aria-checked="${autoCaptureEnabled}" aria-label="Auto-Auslöser umschalten" onclick="toggleAutoCaptureSetting(this)"></button>
+      <div class="settings-group-title"><i class="ti ti-language" aria-hidden="true"></i> ${esc(t('set.lang'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.langSub'))}</div>
+      <div class="lang-choice">
+        <button class="lang-opt ${LANG === 'de' ? 'on' : ''}" onclick="setLang('de')">Deutsch</button>
+        <button class="lang-opt ${LANG === 'en' ? 'on' : ''}" onclick="setLang('en')">English</button>
       </div>
     </div>
 
     <div class="settings-group">
-      <div class="settings-group-title"><i class="ti ti-shield-check" aria-hidden="true"></i> Sammlung sichern</div>
-      <div class="settings-row-sub" style="margin-bottom:9px">Lade ein Backup herunter, damit nichts verloren geht.</div>
+      <div class="settings-group-title"><i class="ti ti-user" aria-hidden="true"></i> ${esc(t('set.nameTitle'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.nameSub'))}</div>
+      <input type="text" id="collectorNameInput" class="settings-input" style="font-family:inherit" placeholder="${esc(t('set.namePh'))}" autocomplete="off" maxlength="24" value="${esc(getCollectorName())}"/>
+      <button class="btn-save-api" onclick="saveCollectorName()"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('set.save'))}</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> ${esc(t('set.apiTitle'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${t('set.apiSub')}</div>
+      <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" value="${esc(getKey())}"/>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> ${esc(t('set.save'))}</button>
+      ${keySet ? `<div class="settings-row-sub" style="color:var(--c-brand-d);margin-top:8px"><i class="ti ti-circle-check" aria-hidden="true"></i> ${esc(t('set.apiSaved'))}</div>` : ''}
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-camera" aria-hidden="true"></i> ${esc(t('set.scan'))}</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-text">${esc(t('set.auto'))}</div>
+          <div class="settings-row-sub">${esc(t('set.autoSub'))}</div>
+        </div>
+        <button class="switch ${autoCaptureEnabled ? 'on' : ''}" role="switch" aria-checked="${autoCaptureEnabled}" aria-label="${esc(t('set.auto'))}" onclick="toggleAutoCaptureSetting(this)"></button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-shield-check" aria-hidden="true"></i> ${esc(t('set.backup'))}</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">${esc(t('set.backupSub'))}</div>
       <div class="backup-btns">
-        <button class="backup-btn primary" onclick="exportCollection()"><i class="ti ti-download" aria-hidden="true"></i> Backup herunterladen</button>
-        <button class="backup-btn" onclick="document.getElementById('importFile').click()"><i class="ti ti-upload" aria-hidden="true"></i> Backup laden</button>
+        <button class="backup-btn primary" onclick="exportCollection()"><i class="ti ti-download" aria-hidden="true"></i> ${esc(t('set.backupDl'))}</button>
+        <button class="backup-btn" onclick="document.getElementById('importFile').click()"><i class="ti ti-upload" aria-hidden="true"></i> ${esc(t('set.backupLoad'))}</button>
       </div>
       <div class="backup-note" id="lastBackupNote"></div>
     </div>
 
     <div class="settings-version">PokéVault ${esc(APP_VERSION)}</div>
-    <button class="btn-close-modal" style="margin-top:12px" onclick="closeModalDirect()">Schließen</button>
+    <button class="btn-close-modal" style="margin-top:12px" onclick="closeModalDirect()">${esc(t('set.close'))}</button>
   `;
   document.getElementById('modalBg').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1058,7 +1161,7 @@ function updateStats() {
   const total = collection.reduce((s, c) => s + (c.price || 0), 0);
   document.getElementById('totalVal').textContent = '€' + total.toFixed(2);
   document.getElementById('cardCount').textContent = collection.length;
-  document.getElementById('collCount').textContent = collection.length + ' Karten';
+  document.getElementById('collCount').textContent = collection.length + ' ' + t('coll.cardsSuffix');
   updateBackupNote();
 }
 
@@ -1464,11 +1567,11 @@ function renderCollection() {
   if (!cards.length) {
     let emptyMsg;
     if (collection.length === 0) {
-      emptyMsg = '<i class="ti ti-pokeball" aria-hidden="true"></i><p>Noch keine Karten in deiner Sammlung.<br><strong>Scanne deine erste Karte!</strong></p>';
+      emptyMsg = `<i class="ti ti-pokeball" aria-hidden="true"></i><p>${t('empty.none')}<br><strong>${t('empty.scanFirst')}</strong></p>`;
     } else if (collQuery || activeFilterCount() > 0) {
-      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten passen zu Suche/Filter.</p>';
+      emptyMsg = `<i class="ti ti-filter-off" aria-hidden="true"></i><p>${t('empty.noFilter')}</p>`;
     } else {
-      emptyMsg = '<i class="ti ti-filter-off" aria-hidden="true"></i><p>Keine Karten in dieser Kategorie.</p>';
+      emptyMsg = `<i class="ti ti-filter-off" aria-hidden="true"></i><p>${t('empty.noCat')}</p>`;
     }
     grid.innerHTML = `<div class="empty-state" role="listitem">${emptyMsg}</div>`;
     maybeShowOnboarding();
@@ -3302,6 +3405,7 @@ function dismissOnboarding() {
 // Show the build version + collector greeting in the topbar
 const verEl = document.getElementById('appVersion');
 if (verEl) verEl.textContent = APP_VERSION;
+applyI18n();
 updateTopbarGreeting();
 // Restore saved view mode button state
 ['grid', 'list', 'sets'].forEach(m => {
