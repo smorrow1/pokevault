@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v19 — Dark Mode (folgt iOS-Systemeinstellung) via :root-Token-Set -->
+<!-- PokéVault v21 — Settings-Menü (Zahnrad): API-Key + Auto-Auslöser + Backup gebündelt -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -36,6 +36,23 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 /* ── Topbar ── */
 .topbar{background:var(--c-brand);color:var(--c-on-brand);padding:16px 16px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-gear{width:38px;height:38px;border-radius:50%;border:1px solid var(--c-on-brand-2);background:transparent;color:var(--c-on-brand);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.topbar-gear:active{background:rgba(255,255,255,0.15)}
+/* ── Settings modal ── */
+.settings-head{font-size:18px;font-weight:700;margin-bottom:14px;padding-right:36px;display:flex;align-items:center;gap:8px}
+.settings-group{border:0.5px solid var(--c-border);border-radius:12px;padding:13px;margin-bottom:12px}
+.settings-group-title{font-size:11px;font-weight:700;color:var(--c-n-888);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.settings-row-text{font-size:14px;color:var(--c-text)}
+.settings-row-sub{font-size:12px;color:var(--c-n-888);margin-top:2px;line-height:1.4}
+.switch{position:relative;width:46px;height:27px;flex-shrink:0;border:none;border-radius:999px;background:var(--c-bd2);cursor:pointer;transition:background 0.2s;-webkit-tap-highlight-color:transparent}
+.switch.on{background:var(--c-brand)}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.switch.on::after{transform:translateX(19px)}
+.settings-version{font-size:12px;color:var(--c-n-aaa);text-align:center;margin-top:4px}
+.settings-input{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid var(--c-bd2);border-radius:8px;background:var(--c-surface-2);color:var(--c-text);outline:none;font-family:monospace;-webkit-appearance:none}
+.settings-input:focus{border-color:var(--c-brand)}
 .pokeball{width:36px;height:36px;border-radius:50%;border:2px solid var(--c-on-brand-2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .topbar-title{font-size:20px;font-weight:600}
 .topbar-sub{font-size:11px;color:var(--c-on-brand-2);margin-top:1px}
@@ -479,9 +496,14 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
         <div class="topbar-sub">Deine Karten-Sammlung <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
-    <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
-      <div class="amount" id="totalVal">€0.00</div>
-      <div class="label">Gesamtwert</div>
+    <div class="topbar-right">
+      <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
+        <div class="amount" id="totalVal">€0.00</div>
+        <div class="label">Gesamtwert</div>
+      </div>
+      <button class="topbar-gear" onclick="openSettings()" aria-label="Einstellungen öffnen">
+        <i class="ti ti-settings" aria-hidden="true"></i>
+      </button>
     </div>
   </header>
 
@@ -545,19 +567,8 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
     </div>
   </section>
 
-  <!-- API Key setup — only shown when no key stored -->
-  <section class="api-section" id="apiSection" aria-label="API-Key Einrichtung">
-    <div class="api-card">
-      <h2 style="font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:var(--c-brand-dd)">
-        <i class="ti ti-key" style="font-size:16px" aria-hidden="true"></i> Anthropic API-Key <span style="font-weight:400;color:var(--c-n-aaa);font-size:12px">(optional)</span>
-      </h2>
-      <p>Für automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong> → API Keys. Wird nur lokal auf diesem Gerät gespeichert.</p>
-      <label for="apiKeyInput" class="field-label" style="display:block;margin-bottom:4px">API-Key</label>
-      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false"/>
-      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern & loslegen</button>
-      <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i> Ohne Key: Manuelle Suche funktioniert sofort und vollständig!</div>
-    </div>
-  </section>
+  <!-- API-Key & Backup leben jetzt im Einstellungen-Modal (Zahnrad oben). -->
+  <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importCollection(event)"/>
 
   <!-- Scan -->
   <section class="scan-section" aria-label="Karte scannen oder suchen">
@@ -716,28 +727,6 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
     </div>
   </section>
 
-  <!-- Backup & data safety -->
-  <section class="backup-section" id="backupSection" aria-label="Datensicherung">
-    <div class="backup-card">
-      <div class="backup-head">
-        <i class="ti ti-shield-check" aria-hidden="true"></i>
-        <div>
-          <div class="backup-title">Sammlung sichern</div>
-          <div class="backup-sub">Lade ein Backup herunter, damit nichts verloren geht.</div>
-        </div>
-      </div>
-      <div class="backup-btns">
-        <button class="backup-btn primary" onclick="exportCollection()">
-          <i class="ti ti-download" aria-hidden="true"></i> Backup herunterladen
-        </button>
-        <button class="backup-btn" onclick="document.getElementById('importFile').click()">
-          <i class="ti ti-upload" aria-hidden="true"></i> Backup laden
-        </button>
-        <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importCollection(event)"/>
-      </div>
-      <div class="backup-note" id="lastBackupNote"></div>
-    </div>
-  </section>
 
 </div>
 
@@ -763,7 +752,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v19';
+const APP_VERSION = 'v21';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -893,11 +882,63 @@ function updateBackupNote() {
 function getKey() { return localStorage.getItem('pokevault_apikey') || ''; }
 
 function saveApiKey() {
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if (!k) { showError('Bitte API-Key eingeben.'); return; }
-  localStorage.setItem('pokevault_apikey', k);
-  document.getElementById('apiSection').style.display = 'none';
-  showToast('API-Key gespeichert!');
+  const el = document.getElementById('apiKeyInput');
+  const k = el ? el.value.trim() : '';
+  if (k) { localStorage.setItem('pokevault_apikey', k); showToast('API-Key gespeichert!'); }
+  else { localStorage.removeItem('pokevault_apikey'); showToast('API-Key entfernt'); }
+  // Refresh the settings view if it's open (updates the "saved" hint)
+  if (document.querySelector('.settings-head')) openSettings();
+}
+
+// ── Settings modal ──────────────────────────────────────
+function openSettings() {
+  const keySet = !!getKey();
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModalDirect()" aria-label="Schließen"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <div class="settings-head"><i class="ti ti-settings" aria-hidden="true"></i> Einstellungen</div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-key" aria-hidden="true"></i> Anthropic API-Key (optional)</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">Für die automatische Karten-Erkennung per Kamera. Kostenlos unter <strong>console.anthropic.com</strong>, wird nur lokal gespeichert. Ohne Key funktioniert die manuelle Suche vollständig.</div>
+      <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" value="${esc(getKey())}"/>
+      <button class="btn-save-api" onclick="saveApiKey()"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
+      ${keySet ? '<div class="settings-row-sub" style="color:var(--c-brand-d);margin-top:8px"><i class="ti ti-circle-check" aria-hidden="true"></i> Key gespeichert</div>' : ''}
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-camera" aria-hidden="true"></i> Scan</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-text">Auto-Auslöser</div>
+          <div class="settings-row-sub">Löst aus, wenn die Karte scharf &amp; ruhig im Rahmen liegt.</div>
+        </div>
+        <button class="switch ${autoCaptureEnabled ? 'on' : ''}" role="switch" aria-checked="${autoCaptureEnabled}" aria-label="Auto-Auslöser umschalten" onclick="toggleAutoCaptureSetting(this)"></button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title"><i class="ti ti-shield-check" aria-hidden="true"></i> Sammlung sichern</div>
+      <div class="settings-row-sub" style="margin-bottom:9px">Lade ein Backup herunter, damit nichts verloren geht.</div>
+      <div class="backup-btns">
+        <button class="backup-btn primary" onclick="exportCollection()"><i class="ti ti-download" aria-hidden="true"></i> Backup herunterladen</button>
+        <button class="backup-btn" onclick="document.getElementById('importFile').click()"><i class="ti ti-upload" aria-hidden="true"></i> Backup laden</button>
+      </div>
+      <div class="backup-note" id="lastBackupNote"></div>
+    </div>
+
+    <div class="settings-version">PokéVault ${esc(APP_VERSION)}</div>
+    <button class="btn-close-modal" style="margin-top:12px" onclick="closeModalDirect()">Schließen</button>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateBackupNote();
+}
+
+function toggleAutoCaptureSetting(btn) {
+  autoCaptureEnabled = !autoCaptureEnabled;
+  localStorage.setItem('pokevault_autoCapture', autoCaptureEnabled ? '1' : '0');
+  if (btn) { btn.classList.toggle('on', autoCaptureEnabled); btn.setAttribute('aria-checked', autoCaptureEnabled); }
+  updateAutoToggleLabel();   // keep the in-camera pill in sync if the scanner is open
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3234,7 +3275,7 @@ function dismissOnboarding() {
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-if (getKey()) document.getElementById('apiSection').style.display = 'none';
+// (API key & backup now live in the Settings modal — gear icon in the topbar)
 // Show the build version in the topbar
 const verEl = document.getElementById('appVersion');
 if (verEl) verEl.textContent = APP_VERSION;

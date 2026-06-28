@@ -154,6 +154,12 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 - **Erststart-Onboarding**: wegklickbarer Willkommens-Block bei leerer Sammlung
   (erklärt Scan vs. Suche ohne API-Key). Nur einmal, danach gemerkt.
 - **Dark Mode**: folgt automatisch der iOS-Systemeinstellung (kein Schalter).
+- **Einstellungen-Menü** (Zahnrad in der Topbar → `openSettings()`, Reuse des Modals):
+  bündelt **API-Key**, **Auto-Auslöser**-Schalter und **Backup** (Export/Import) + Versions-Tag.
+  Die früheren eigenständigen Sektionen `api-section`/`backup-section` wurden dorthin verlagert
+  (Startseite aufgeräumt). Der versteckte `#importFile`-Input lebt jetzt auf Body-Ebene.
+  Funktionen `saveApiKey`/`exportCollection`/`importCollection`/`updateBackupNote` unverändert
+  wiederverwendet; `lastBackupNote` existiert nur, wenn das Menü offen ist (Update guarded).
 
 ## Deployment-Workflow
 
