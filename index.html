@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PokéVault v21 — Settings-Menü (Zahnrad): API-Key + Auto-Auslöser + Backup gebündelt -->
+<!-- PokéVault v22 — Stats: Gesamtwert als Kachel (Topbar entschlackt), 2 Kacheln -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -497,10 +497,6 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       </div>
     </div>
     <div class="topbar-right">
-      <div class="topbar-val" aria-label="Gesamtwert der Sammlung">
-        <div class="amount" id="totalVal">€0.00</div>
-        <div class="label">Gesamtwert</div>
-      </div>
       <button class="topbar-gear" onclick="openSettings()" aria-label="Einstellungen öffnen">
         <i class="ti ti-settings" aria-hidden="true"></i>
       </button>
@@ -513,8 +509,8 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
       <div class="stat-val" id="cardCount" aria-live="polite">0</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label"><i class="ti ti-star" aria-hidden="true"></i> Wertvollste</div>
-      <div class="stat-val green" id="topVal">—</div>
+      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true"></i> Gesamtwert</div>
+      <div class="stat-val green" id="totalVal" aria-live="polite">€0.00</div>
     </div>
   </section>
 
@@ -752,7 +748,7 @@ html,body{min-height:100vh;background:var(--c-bg);font-family:-apple-system,Blin
 // ═══════════════════════════════════════════════════════
 // Visible build marker — bump together with the HTML comment at the top of the
 // file on every deploy, so it's obvious on-device whether the new version loaded.
-const APP_VERSION = 'v21';
+const APP_VERSION = 'v22';
 let mediaStream = null;
 let cameraTrack = null;           // active video track (for focus control)
 let sharpnessRAF = null;          // requestAnimationFrame handle for sharpness loop
@@ -1033,9 +1029,6 @@ function updateStats() {
   document.getElementById('totalVal').textContent = '€' + total.toFixed(2);
   document.getElementById('cardCount').textContent = collection.length;
   document.getElementById('collCount').textContent = collection.length + ' Karten';
-  if (!collection.length) { document.getElementById('topVal').textContent = '—'; return; }
-  const top = [...collection].sort((a, b) => (b.price || 0) - (a.price || 0))[0];
-  document.getElementById('topVal').textContent = '€' + (top.price || 0).toFixed(2);
   updateBackupNote();
 }
 
