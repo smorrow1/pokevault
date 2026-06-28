@@ -180,12 +180,18 @@ Repository: https://github.com/smorrow1/pokevault — die Datei heißt dort `ind
 
 ## Konventionen
 
-- Sprache der UI: **DE/EN umschaltbar** (Settings) via i18n-Schicht `STRINGS={de,en}` + `t(key)`
-  + `applyI18n()` (füllt `data-i18n`/`-ph`/`-html`-Attribute) + `setLang()`. **Stand: Schritt 1** —
-  die statische Startseiten-Shell + Settings sind übersetzt; tiefe dynamische Strings
-  (Erfolge/Challenges-Texte, Picker/Result/Detail-Modals, Toasts, Scan-Hinweise) sind noch DE
-  → Folge-Schritt. Neue sichtbare Strings IMMER über `t()`/`data-i18n`, nicht hartkodieren.
-  Code-Kommentare: Englisch (kurz, wo nötig).
+- Sprache der UI: **DE/EN umschaltbar** (Settings) via i18n-Schicht `STRINGS={de,en}` + `t(key,vars)`
+  + `applyI18n()` (füllt `data-i18n`/`-ph`/`-html`-Attribute) + `setLang()`. **Stand: Schritt 2
+  (vollständig)** — alle sichtbaren Strings sind übersetzt: statische Shell + Settings über
+  `data-i18n`, dynamische Strings (Picker/Result/Detail-Modal, Toasts, Scan-/Kamera-Status,
+  Backup-Notiz, Fehler) über `t()`. Die **Erfolge/Challenges-Texte** (Titel/Beschreibung) liegen
+  nicht in `STRINGS`, sondern in der Map **`DYN_EN={ch:{}, ach:{}}`** (per-ID `[title, desc]`);
+  Helfer **`chT/chD/achT/achD`** liefern EN, wenn `LANG==='en'` und ein Eintrag existiert, sonst
+  das deutsche `o.title`/`o.desc` aus dem CHALLENGES/ACHIEVEMENTS-Array. **Neue Challenges/Erfolge:
+  Eintrag in DYN_EN nicht vergessen.** Wichtig bei `innerHTML`-Templates: in `t()`-Variablen
+  eingesetzte Werte selbst `esc()`'n (z.B. `t('res.dup',{name:esc(...)})`); bei `showError(t(...))`
+  dagegen RAW übergeben (showError esc()'t die ganze Meldung). Neue sichtbare Strings IMMER über
+  `t()`/`data-i18n`, nicht hartkodieren. Code-Kommentare: Englisch (kurz, wo nötig).
 - Vor jedem Commit: JS-Syntax prüfen (`node --check` auf den extrahierten Script-Block).
 - Klammer-Balance der ganzen Datei nach Edits gegenchecken.
 - Keine externen JS-Libs einbauen ohne guten Grund (Ausnahme: Tabler-Icons-Webfont via CDN).
